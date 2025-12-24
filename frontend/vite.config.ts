@@ -10,4 +10,10 @@ export default defineConfig({
       $lib: resolve("./src/lib"),
     },
   },
+  build: {
+    sourcemap: true,
+  },
+  css: {
+    devSourcemap: true,
+  },
 });

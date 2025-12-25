@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Project Overview
 
 This document contains notes on the project structure and configuration for the Wails + Svelte 5 + Tailwind 4 template.
@@ -8,6 +12,8 @@ This document contains notes on the project structure and configuration for the 
 - **Frontend framework**: [Svelte 5](https://svelte.dev/) (Vite)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (configured via `@tailwindcss/vite`)
 - **UI Components**: [shadcn-svelte](https://www.shadcn-svelte.com/)
+- **Icons**: [lucide-svelte](https://lucide.dev/guide/packages/lucide-svelte)
+- **Forms**: [sveltekit-superforms](https://superforms.rocks/)
 - **Build Tool**: Vite
 
 ## Project Structure
@@ -24,6 +30,8 @@ This document contains notes on the project structure and configuration for the 
 │   ├── svelte.config.js# Svelte config
 │   ├── src/
 │   │   ├── App.svelte  # Main application component (SPA entry)
+│   │   ├── main.ts     # Entry point
+│   │   ├── vite-env.d.ts # Vite types
 │   │   ├── style.css   # Global styles (Tailwind 4 import + Theme variables)
 │   │   ├── lib/        # Shared code and aliases ($lib)
 │   │   │   └── components/ui/ # shadcn-svelte components
@@ -42,7 +50,7 @@ This document contains notes on the project structure and configuration for the 
 
 ### Frontend (`frontend/package.json`)
 - Scripts: `dev`, `build`, `check`.
-- Dependencies include `bits-ui`, `formsnap`, `svelte-sonner`, `mode-watcher` (typical shadcn-svelte ecosystem).
+- Dependencies include standard Svelte ecosystem packages. See `frontend/package.json` for specific versions.
 
 ### Styling (`frontend/src/style.css`)
 - Imports Tailwind 4: `@import "tailwindcss";`

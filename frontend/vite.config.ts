@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
   build: {
     sourcemap: mode === "development" ? "inline" : false,
   },
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
   css: {
     devSourcemap: mode === "development",
   },

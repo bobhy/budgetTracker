@@ -1,8 +1,9 @@
-# Wails + Svelte 5 + Tailwind 4 + shadcn-svelte Template
-
-A modern, production-ready template for building beautiful desktop applications with cutting-edge web technologies and a complete UI component library.
+# Budget Tracker
+Track spending in multiple accounts vs user-created budget.  Intended for personal, not business use.
 
 ## Tech Stack
+
+Template for the app powered by https://github.com/rgehrsitz/wails2-svelte5-tailwind4-ts-vite.
 
 This template combines the latest versions of powerful technologies:
 
@@ -13,7 +14,7 @@ This template combines the latest versions of powerful technologies:
 - **[TypeScript v5.8.3](https://www.typescriptlang.org/)**: JavaScript with syntax for types
 - **[Vite v6.3.3](https://vitejs.dev/)**: Next generation frontend tooling for lightning-fast development
 
-## Features
+### Features
 
 - **🎨 Complete UI Component Library**: 40+ pre-built, accessible components from shadcn-svelte
 - **🌙 Dark Mode Support**: Built-in dark/light theme switching with proper color variables
@@ -24,20 +25,6 @@ This template combines the latest versions of powerful technologies:
 - **♿ Accessibility**: Components built with accessibility best practices
 - **🎯 Cross-Platform**: Build for Windows, macOS, and Linux with a single codebase
 - **🔥 Go Backend**: Leverage Go's performance and ecosystem for your application logic
-
-## UI Components Included
-
-All shadcn-svelte components are pre-installed and ready to use:
-
-- **Layout**: Card, Separator, Resizable, Sidebar
-- **Navigation**: Breadcrumb, Menu, Navigation Menu, Pagination
-- **Form**: Button, Input, Textarea, Select, Checkbox, Radio Group, Switch, Form
-- **Data Display**: Table, Data Table, Avatar, Badge, Calendar, Chart
-- **Feedback**: Alert, Alert Dialog, Dialog, Drawer, Sheet, Toast (Sonner), Progress, Skeleton
-- **Overlay**: Popover, Tooltip, Hover Card, Context Menu, Dropdown Menu
-- **And many more...**
-
-## Getting Started
 
 ### Prerequisites
 

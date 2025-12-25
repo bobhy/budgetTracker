@@ -26,6 +26,7 @@ frontend/build/
 frontend/.vite/
 frontend/.svelte-kit/
 frontend/.tailwindcss-cache
+frontend/wailsjs/
 frontend/components.json.bak
 frontend/vite.config.ts.timestamp-*
 node_modules/

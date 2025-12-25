@@ -3,17 +3,22 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path";
 
-export default defineConfig({
-  plugins: [tailwindcss(), svelte()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    tailwindcss(),
+    svelte({
+
+    }),
+  ],
   resolve: {
     alias: {
       $lib: resolve("./src/lib"),
     },
   },
   build: {
-    sourcemap: true,
+    sourcemap: mode === "development" ? "inline" : false,
   },
   css: {
-    devSourcemap: true,
+    devSourcemap: mode === "development",
   },
-});
+}));

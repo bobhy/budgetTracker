@@ -6,18 +6,28 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+
+	"wailts/models"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
-	app := NewApp()
+	// Initialize the database service
+	// Using "budget.db" in the executable directory for now
+	service, err := models.NewService("budget.db")
+	if err != nil {
+		println("Error initializing database:", err.Error())
+		return
+	}
+
+	// Create an instance of the app structure, with the service
+	app := NewApp(service)
 
 	// Create application with options
-	err := wails.Run(&options.App{
-		Title:  "Wails/Vite/Svelte/Tailwind/Typescript",
+	err = wails.Run(&options.App{
+		Title:  "BudgetTracker",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

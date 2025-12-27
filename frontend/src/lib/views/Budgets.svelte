@@ -92,6 +92,7 @@
    }
 </script>
 
+
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold">Budgets</h2>

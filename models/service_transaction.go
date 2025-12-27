@@ -23,14 +23,14 @@ func (s *Service) AddTransaction(postedDate Date, accountID string, amount Money
 	}).Error
 }
 
-// UpdateTransaction uses ID (uint from gorm.Model) for identification
+// UpdateTransaction uses ID for identification
 func (s *Service) UpdateTransaction(id uint, postedDate Date, accountID string, amount Money, description, tag string) error {
-	return s.db.Model(&Transaction{}).Where("id = ?", id).Updates(Transaction{
-		PostedDate:  postedDate,
-		AccountID:   accountID,
-		Amount:      amount,
-		Description: description,
-		Tag:         tag,
+	return s.db.Model(&Transaction{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"posted_date": postedDate,
+		"account_id":  accountID,
+		"amount":      amount,
+		"description": description,
+		"tag":         tag,
 	}).Error
 }
 

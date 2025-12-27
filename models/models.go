@@ -1,7 +1,7 @@
 package models
 
 import (
-	"gorm.io/gorm"
+	"time"
 )
 
 // Money is stored as integer number of cents
@@ -36,7 +36,10 @@ type Budget struct {
 }
 
 type Transaction struct {
-	gorm.Model
+	ID           uint       `gorm:"primarykey" json:"ID"`
+	CreatedAt    time.Time  `json:"-"` // Hide from frontend to avoid warning/binding issues
+	UpdatedAt    time.Time  `json:"-"`
+	DeletedAt    *time.Time `gorm:"index" json:"-"` // Use pointer to time for soft delete, hide from json
 	PostedDate   Date
 	AccountID    string
 	Account      Account `gorm:"foreignKey:AccountID"`

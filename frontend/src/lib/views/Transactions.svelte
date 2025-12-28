@@ -6,7 +6,7 @@
    import { Input } from "$lib/components/ui/input";
    import { Label } from "$lib/components/ui/label";
    import { Trash2, Pencil, Plus } from "@lucide/svelte";
-   import { GetTransactions, AddTransaction, UpdateTransaction, DeleteTransaction, GetAccounts } from "../../../wailsjs/go/main/App";
+   import { GetTransactions, AddTransaction, UpdateTransaction, DeleteTransaction, GetAccounts, GetBeneficiaries, GetBudgets } from "../../../wailsjs/go/main/App";
 
    let transactions = $state([]);
    let accounts = $state([]);
@@ -20,14 +20,25 @@
    let currentAmount = $state(0);
    let currentDesc = $state("");
    let currentTag = $state("");
+   let currentBeneficiary = $state("");
+   let currentBudgetLine = $state("");
+   let currentRawHint = $state("");
+
+   // Options
+   let beneficiaryOptions = $state([]);
+   let budgetOptions = $state([]);
 
    async function load() {
-       const [txs, accs] = await Promise.all([
+       const [txs, accs, bens, buds] = await Promise.all([
            GetTransactions(),
-           GetAccounts()
+           GetAccounts(),
+           GetBeneficiaries(),
+           GetBudgets()
        ]);
        transactions = txs || [];
        accounts = accs || [];
+       beneficiaryOptions = bens ? bens.map((b: any) => b.Name) : [];
+       budgetOptions = buds ? buds.map((b: any) => b.ShortName || b.Name) : [];
    }
 
    onMount(load);
@@ -39,6 +50,9 @@
        currentAmount = 0;
        currentDesc = "";
        currentTag = "";
+       currentBeneficiary = "";
+       currentBudgetLine = "";
+       currentRawHint = "";
        isDialogOpen = true;
    }
 
@@ -51,6 +65,9 @@
        currentAmount = t.Amount;
        currentDesc = t.Description;
        currentTag = t.Tag;
+       currentBeneficiary = t.Beneficiary;
+       currentBudgetLine = t.BudgetLine;
+       currentRawHint = t.RawHint;
        isDialogOpen = true;
    }
 
@@ -58,9 +75,9 @@
        try {
            const amount = Number(currentAmount);
            if (isEditing) {
-               await UpdateTransaction(currentID, currentDate, currentAccountID, amount, currentDesc, currentTag);
+               await UpdateTransaction(currentID, currentDate, currentAccountID, amount, currentDesc, currentTag, currentBeneficiary, currentBudgetLine, currentRawHint);
            } else {
-               await AddTransaction(currentDate, currentAccountID, amount, currentDesc, currentTag);
+               await AddTransaction(currentDate, currentAccountID, amount, currentDesc, currentTag, currentBeneficiary, currentBudgetLine, currentRawHint);
            }
            isDialogOpen = false;
            load();
@@ -103,6 +120,9 @@
                     <Table.Head>Account</Table.Head>
                     <Table.Head>Amount</Table.Head>
                     <Table.Head>Description</Table.Head>
+                    <Table.Head>Beneficiary</Table.Head>
+                    <Table.Head>BudgetLine</Table.Head>
+                    <Table.Head>Hint</Table.Head>
                     <Table.Head>Tag</Table.Head>
                     <Table.Head class="text-right">Actions</Table.Head>
                 </Table.Row>
@@ -121,6 +141,9 @@
                             <Table.Cell>{t.AccountID}</Table.Cell>
                             <Table.Cell>{t.Amount}</Table.Cell>
                             <Table.Cell>{t.Description}</Table.Cell>
+                            <Table.Cell>{t.Beneficiary}</Table.Cell>
+                            <Table.Cell>{t.BudgetLine}</Table.Cell>
+                            <Table.Cell>{t.RawHint}</Table.Cell>
                             <Table.Cell>{t.Tag}</Table.Cell>
                             <Table.Cell class="text-right">
                                 <Button variant="ghost" size="icon" onclick={() => openEdit(t)}>
@@ -163,6 +186,28 @@
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label class="text-right">Description</Label>
                     <Input class="col-span-3" bind:value={currentDesc} />
+                </div>
+                 <div class="grid grid-cols-4 items-center gap-4">
+                    <Label class="text-right">Beneficiary</Label>
+                     <select class="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors" bind:value={currentBeneficiary}>
+                        <option value="">(None)</option>
+                        {#each beneficiaryOptions as b}
+                            <option value={b}>{b}</option>
+                        {/each}
+                     </select>
+                </div>
+                 <div class="grid grid-cols-4 items-center gap-4">
+                    <Label class="text-right">Budget Line</Label>
+                     <select class="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors" bind:value={currentBudgetLine}>
+                        <option value="">(None)</option>
+                        {#each budgetOptions as b}
+                            <option value={b}>{b}</option>
+                        {/each}
+                     </select>
+                </div>
+                 <div class="grid grid-cols-4 items-center gap-4">
+                    <Label class="text-right">Raw Hint</Label>
+                    <Input class="col-span-3" bind:value={currentRawHint} />
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label class="text-right">Tag</Label>

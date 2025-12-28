@@ -85,11 +85,11 @@ func (a *App) DeleteBudget(name string) error {
 func (a *App) GetTransactions() ([]models.Transaction, error) {
 	return a.service.GetTransactions()
 }
-func (a *App) AddTransaction(postedDate models.Date, accountID string, amount models.Money, description, tag string) error {
-	return a.service.AddTransaction(postedDate, accountID, amount, description, tag)
+func (a *App) AddTransaction(postedDate models.Date, accountID string, amount models.Money, description, tag, beneficiary, budgetLine, rawHint string) error {
+	return a.service.AddTransaction(postedDate, accountID, amount, description, tag, beneficiary, budgetLine, rawHint)
 }
-func (a *App) UpdateTransaction(id uint, postedDate models.Date, accountID string, amount models.Money, description, tag string) error {
-	return a.service.UpdateTransaction(id, postedDate, accountID, amount, description, tag)
+func (a *App) UpdateTransaction(id uint, postedDate models.Date, accountID string, amount models.Money, description, tag, beneficiary, budgetLine, rawHint string) error {
+	return a.service.UpdateTransaction(id, postedDate, accountID, amount, description, tag, beneficiary, budgetLine, rawHint)
 }
 func (a *App) DeleteTransaction(id uint) error {
 	return a.service.DeleteTransaction(id)

@@ -4,7 +4,6 @@
   // Removed unused Select imports
   import * as Card from "$lib/components/ui/card";
   import RawTransactionsTable from "$lib/components/RawTransactionsTable.svelte";
-  import RawTransactionForm from "$lib/components/RawTransactionForm.svelte";
   import { 
     ImportFile, 
     SelectFile, 
@@ -29,10 +28,6 @@
   // Options for Edit Form
   let budgetOptions = $state<string[]>([]);
   let beneficiaryOptions = $state<string[]>([]);
-
-  // Edit Modal State
-  let editingItem = $state<any>(null);
-  let isEditOpen = $state(false);
 
   onMount(async () => {
     await loadAccounts();
@@ -118,15 +113,12 @@
       }
   }
 
-  function openEdit(event: CustomEvent) {
-      editingItem = event.detail;
-      isEditOpen = true;
-  }
-
   async function saveEdit(event: CustomEvent) {
       const item = event.detail;
       try {
-          const amount = parseInt(item.Amount);
+          // item.Amount is already cents from the Table's logic
+          // But ensure type safety
+          const amount = Number(item.Amount);
           await UpdateRawTransaction(
               item.ID, 
               item.PostedDate, 
@@ -203,7 +195,10 @@
         <Card.Content class="flex-1 overflow-auto min-h-0">
             <RawTransactionsTable 
                 data={rawTransactions} 
-                on:edit={openEdit}
+                budgetOptions={budgetOptions}
+                beneficiaryOptions={beneficiaryOptions}
+                on:update={saveEdit}
+                on:delete={deleteEdit}
             />
         </Card.Content>
     </Card.Root>
@@ -214,13 +209,4 @@
           Last Import: {importStats}
       </div>
    {/if}
-
-  <RawTransactionForm 
-    bind:open={isEditOpen} 
-    item={editingItem}
-    budgetOptions={budgetOptions}
-    beneficiaryOptions={beneficiaryOptions}
-    on:save={saveEdit}
-    on:delete={deleteEdit}
-  />
 </div>

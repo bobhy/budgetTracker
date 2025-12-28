@@ -1,0 +1,5 @@
+// Add helper for file dialog
+// Need to import "github.com/wailsapp/wails/v2/pkg/runtime"
+// But need to ensure imports are clean.
+
+// Let's modify app.go using multi_replace to add the import and the function.

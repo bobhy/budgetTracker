@@ -1,4 +1,4 @@
-export type View = 'beneficiaries' | 'accounts' | 'budgets' | 'transactions' | 'database';
+export type View = 'beneficiaries' | 'accounts' | 'budgets' | 'transactions' | 'database' | 'import';
 
 class NavigationState {
     currentView = $state<View>('beneficiaries');

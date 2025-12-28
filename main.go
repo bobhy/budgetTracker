@@ -20,7 +20,7 @@ var icon []byte
 func main() {
 	// Initialize the database service
 	// Using "budget.db" in the executable directory for now
-	service, err := models.NewService("budget.db")
+	service, err := models.NewService("db/budget.db")
 	if err != nil {
 		println("Error initializing database:", err.Error())
 		return

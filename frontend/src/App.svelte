@@ -6,6 +6,7 @@
   import Budgets from '$lib/views/Budgets.svelte';
   import Transactions from '$lib/views/Transactions.svelte';
   import Database from '$lib/views/Database.svelte';
+  import Import from '$lib/views/Import.svelte';
 </script>
 
 <main class="min-h-screen bg-background text-foreground flex flex-col">
@@ -20,6 +21,8 @@
       <Budgets />
     {:else if navigation.currentView === 'transactions'}
       <Transactions />
+    {:else if navigation.currentView === 'import'}
+      <Import />
     {:else if navigation.currentView === 'database'}
       <Database />
     {/if}

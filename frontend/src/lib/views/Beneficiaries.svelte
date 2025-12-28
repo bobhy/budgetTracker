@@ -6,7 +6,7 @@
    import { Input } from "$lib/components/ui/input";
    import { Label } from "$lib/components/ui/label";
    import { Trash2, Pencil, Plus } from "@lucide/svelte";
-   import { GetBeneficiaries, AddBeneficiary, UpdateBeneficiary, DeleteBeneficiary, GenerateBeneficiaries } from "../../../wailsjs/go/main/App";
+   import { GetBeneficiaries, AddBeneficiary, UpdateBeneficiary, DeleteBeneficiary } from "../../../wailsjs/go/main/App";
 
    let beneficiaries = $state([]);
    let isDialogOpen = $state(false);
@@ -59,24 +59,14 @@
        }
    }
 
-   async function generate() {
-       try {
-           await GenerateBeneficiaries(10);
-           load();
-       } catch (e) {
-           console.error(e);
-           alert("Error generating: " + e);
-       }
-   }
+
 </script>
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold">Beneficiaries</h2>
         <div class="flex gap-2">
-            <Button variant="outline" onclick={generate}>
-                Generate 10
-            </Button>
+
             <Button onclick={openAdd}>
                 <Plus class="w-4 h-4 mr-2" /> Add Beneficiary
             </Button>

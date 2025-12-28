@@ -47,3 +47,25 @@ For global state management (like navigation), use Svelte 5 Runes in `.svelte.ts
 export const navigationState = $state({ currentView: 'Dashboard' });
 ```
 This is simpler and more reactive than traditional Svelte stores.
+
+## Frontend Development Standards
+
+### Svelte 5 & Runes
+The project relies on Svelte 5. All new components and views **MUST** utilize **Runes** (`$state`, `$props`, `$derived`, `$effect`, etc.) instead of legacy Svelte 4 syntax (`export let`, `let` without $state for reactivity).
+
+- **Strict Consistency**: Do not mix legacy syntax and Runes within the same file. While technically supported during migration, it leads to confusion and potential compiler edge-cases (e.g. blank screens).
+- **Imports**: Ensure all UI component imports are actually used or removed. Importing complex UI libraries (like shadcn-svelte) without usage can sometimes cause issues if the underlying library has dependencies.
+
+**Example of Component using Runes:**
+```html
+<script lang="ts">
+  let { title = "Default" } = $props();
+  let count = $state(0);
+
+  function increment() {
+    count += 1;
+  }
+</script>
+
+<button onclick={increment}>{title}: {count}</button>
+```

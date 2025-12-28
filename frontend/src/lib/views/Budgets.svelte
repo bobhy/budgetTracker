@@ -6,7 +6,7 @@
    import { Input } from "$lib/components/ui/input";
    import { Label } from "$lib/components/ui/label";
    import { Trash2, Pencil, Plus } from "@lucide/svelte";
-   import { GetBudgets, AddBudget, UpdateBudget, DeleteBudget, GetBeneficiaries, GenerateBudgets } from "../../../wailsjs/go/main/App";
+   import { GetBudgets, AddBudget, UpdateBudget, DeleteBudget, GetBeneficiaries } from "../../../wailsjs/go/main/App";
 
    let budgets = $state([]);
    let beneficiaries = $state([]);
@@ -81,15 +81,7 @@
        }
    }
 
-   async function generate() {
-       try {
-           await GenerateBudgets(10);
-           load();
-       } catch (e) {
-           console.error(e);
-           alert("Error generating: " + e);
-       }
-   }
+
 </script>
 
 
@@ -97,9 +89,7 @@
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold">Budgets</h2>
         <div class="flex gap-2">
-            <Button variant="outline" onclick={generate}>
-                Generate 10
-            </Button>
+
             <Button onclick={openAdd}>
                 <Plus class="w-4 h-4 mr-2" /> Add Budget
             </Button>

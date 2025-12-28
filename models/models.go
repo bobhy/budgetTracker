@@ -36,15 +36,34 @@ type Budget struct {
 }
 
 type Transaction struct {
-	ID           uint       `gorm:"primarykey" json:"ID"`
-	CreatedAt    time.Time  `json:"-"` // Hide from frontend to avoid warning/binding issues
-	UpdatedAt    time.Time  `json:"-"`
-	DeletedAt    *time.Time `gorm:"index" json:"-"` // Use pointer to time for soft delete, hide from json
-	PostedDate   Date
-	AccountID    string
-	Account      Account `gorm:"foreignKey:AccountID"`
-	Amount       Money
-	Description  string
-	Tag          string
-	BudgetLineID *uint // Optional link to a budget line item (not fully defined in design yet, using simple ID for now)
+	ID          uint       `gorm:"primarykey" json:"ID"`
+	CreatedAt   time.Time  `json:"-"` // Hide from frontend to avoid warning/binding issues
+	UpdatedAt   time.Time  `json:"-"`
+	DeletedAt   *time.Time `gorm:"index" json:"-"` // Use pointer to time for soft delete, hide from json
+	PostedDate  Date
+	AccountID   string
+	Account     Account `gorm:"foreignKey:AccountID"`
+	Amount      Money
+	Description string
+	Tag         string
+	BudgetLine  string // Replaces BudgetLineID
+	Beneficiary string // Overrides Account default if set
+	RawHint     string // Category hint from import
+}
+
+// RawTransaction is used for importing transactions before they are fully processed and linked
+type RawTransaction struct {
+	ID          uint       `gorm:"primarykey" json:"ID"`
+	CreatedAt   time.Time  `json:"-"`
+	UpdatedAt   time.Time  `json:"-"`
+	DeletedAt   *time.Time `gorm:"index" json:"-"`
+	PostedDate  Date
+	AccountID   string
+	Amount      Money
+	Description string
+	Tag         string
+	BudgetLine  string
+	Action      string // "add" or "update"
+	Beneficiary string
+	RawHint     string
 }

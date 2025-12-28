@@ -21,6 +21,9 @@
       "$lib/*": [
         "src/lib/*"
       ],
+      "$wailsjs/*": [
+        "wailsjs/*"
+      ],
       "$lib/components/*": [
         "src/lib/components/*"
       ],

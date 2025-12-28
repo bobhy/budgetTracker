@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       $lib: resolve("./src/lib"),
+      $wailsjs: resolve("./wailsjs"),
     },
   },
   build: {

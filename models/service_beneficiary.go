@@ -3,13 +3,13 @@ package models
 // GetBeneficiaries returns all beneficiaries
 func (s *Service) GetBeneficiaries() ([]Beneficiary, error) {
 	var beneficiaries []Beneficiary
-	result := s.db.Find(&beneficiaries)
+	result := s.DB.Find(&beneficiaries)
 	return beneficiaries, result.Error
 }
 
 // AddBeneficiary adds a new beneficiary
 func (s *Service) AddBeneficiary(name string) error {
-	return s.db.Create(&Beneficiary{Name: name}).Error
+	return s.DB.Create(&Beneficiary{Name: name}).Error
 }
 
 // UpdateBeneficiary updates a beneficiary's name.
@@ -24,10 +24,10 @@ func (s *Service) UpdateBeneficiary(oldName, newName string) error {
 	// For SQLite, updating a PK usually cascades if FK constraints are set with ON UPDATE CASCADE.
 	// GORM doesn't default to ON UPDATE CASCADE for all drivers easily without tags.
 	// But let's try the standard update.
-	return s.db.Model(&Beneficiary{Name: oldName}).Update("name", newName).Error
+	return s.DB.Model(&Beneficiary{Name: oldName}).Update("name", newName).Error
 }
 
 // DeleteBeneficiary deletes a beneficiary
 func (s *Service) DeleteBeneficiary(name string) error {
-	return s.db.Delete(&Beneficiary{Name: name}).Error
+	return s.DB.Delete(&Beneficiary{Name: name}).Error
 }

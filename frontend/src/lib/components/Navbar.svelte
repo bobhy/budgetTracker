@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { navigation, type View } from '$lib/stores/navigation.svelte';
-	import { Database, Users, CreditCard, PiggyBank, Receipt } from '@lucide/svelte';
+	import { Database, Users, CreditCard, PiggyBank, Receipt, Upload } from '@lucide/svelte';
 	import * as Menubar from '$lib/components/ui/menubar';
     import { Button } from '$lib/components/ui/button';
 
@@ -9,6 +9,7 @@
         { label: 'Accounts', view: 'accounts', icon: CreditCard },
         { label: 'Budgets', view: 'budgets', icon: PiggyBank },
         { label: 'Transactions', view: 'transactions', icon: Receipt },
+        { label: 'Import', view: 'import', icon: Upload },
         { label: 'Database', view: 'database', icon: Database },
     ];
 </script>

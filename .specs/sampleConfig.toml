@@ -1,0 +1,6 @@
+# A docmented config file for <project>, showing all defined settings
+
+config = "$XDG_CONFIG_HOME/budgetTracker/config.toml"   # relative path to config file
+database = "$XDG_DATA_HOME/budgetTracker/budget.db" # Path to databasePath
+importFolder = "$XDG_DATA_HOME/budgetTracker/importHistory"    # Path to already-imported files
+

@@ -37,7 +37,7 @@ It exports a global, static Go struct `config.Config` and methods to serialize C
 This package also contains an `config.Init' function which:
 1. Starts with a Config struct initialized with defaults.  
 2. Determines name of project (placeholder `<project>`) below.
-3. Looks for a command line flag "config" or the corresponding environment variable `<project>_config`, and updates the path to the config file.
+3. Determines path to config file from default, with possible override from environment variable `<project>_config` and final override from comand line flag "config".
 4. Reads in the config file from the path determined above.
 5. Scans all environment variables starting with `<project>_` and updates Config field accordingly.
 6. Scans the flags in command line, overriding corresponding Config field.

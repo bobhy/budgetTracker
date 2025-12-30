@@ -8,6 +8,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 
+	"wailts/config"
 	"wailts/models"
 )
 
@@ -18,9 +19,11 @@ var assets embed.FS
 var icon []byte
 
 func main() {
+	// Initialize configuration
+	config.Init()
+
 	// Initialize the database service
-	// Using "budget.db" in the executable directory for now
-	service, err := models.NewService("db/budget.db")
+	service, err := models.NewService(config.Current.DatabasePath)
 	if err != nil {
 		println("Error initializing database:", err.Error())
 		return

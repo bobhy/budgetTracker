@@ -36,3 +36,24 @@ func TestSomething(t *testing.T) {
     }
 }
 ```
+
+## Data Safety (Agent Testing)
+
+The agent must **NEVER** run the application against default data locations (which likely contain the user's production data).
+
+**Rules:**
+1. **Always isolate data**: When invoking the app (via `wails dev`, `go run`, or compiled binary), explicit paths for the database and configuration must be provided.
+2. **Use Testing Locations**: Use a dedicated `agent_testing/` directory in the project root or a transient system temp directory.
+    - Example: `agent_testing/config.toml`
+    - Example: `agent_testing/budget.db`
+3. **Mechanism**: Override defaults using Command Line Flags or Environment Variables.
+
+**Examples:**
+- **Command Line**:
+    ```bash
+    wails dev --appargs "-database agent_testing/budget.db -importFolder agent_testing/imports"
+    ```
+- **Environment**:
+    ```bash
+    budgetTracker_database="agent_testing/budget.db" budgetTracker_importFolder="agent_testing/imports" wails dev
+    ```

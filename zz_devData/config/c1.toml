@@ -1,6 +1,0 @@
-# A docmented config file for <project>, showing all defined settings
-
-config = "zz_devData/config/config.toml"
-database = "zz_devData/db/budget.db"
-importFolder = "zz_devData/import"
-

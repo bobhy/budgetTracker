@@ -5,7 +5,8 @@
 		FlexRender,
 		type ColumnDef,
 		type TableOptions,
-        type Row
+        type Row,
+        type SortingState
 	} from '@tanstack/svelte-table';
 	// import FlexRender from './FlexRender.svelte';
 	import { createVirtualizer } from '@tanstack/svelte-virtual';
@@ -23,7 +24,7 @@
     let totalKnownRows = $state(0); 
     let hasMore = $state(true); 
     let isLoading = $state(false);
-	let sorting = $state<SortKey[]>([]);
+	let sorting = $state<SortingState>([]);
     let globalFilter = $state(""); 
     
     // Selection State
@@ -71,6 +72,18 @@
         manualPagination: true,
         enableColumnResizing: true,
         columnResizeMode: 'onChange',
+        state: {
+            get sorting() {
+                return sorting;
+            }
+        },
+        onSortingChange: (updater) => {
+            if (typeof updater === 'function') {
+                sorting = updater(sorting);
+            } else {
+                sorting = updater;
+            }
+        }
 	};
 
 	const table = createTable(options);
@@ -124,7 +137,12 @@
             while (addedRows < wantedGridRows && hasMore && safety < 10) {
                 safety++;
                 
-                const newRawRows = await dataSource(cols, backendFetchedCount, batchSize, sorting);
+                // Convert TanStack SortingState to our SortKey[] format
+                const sortKeys: SortKey[] = sorting.map(s => ({
+                    key: s.id,
+                    direction: s.desc ? 'desc' : 'asc'
+                }));
+                const newRawRows = await dataSource(cols, backendFetchedCount, batchSize, sortKeys);
                 
                 if (newRawRows.length < batchSize) {
                     hasMore = false;
@@ -347,8 +365,8 @@
                                 class="flex items-center gap-1 hover:text-foreground transition-colors w-full overflow-hidden"
                                 class:cursor-pointer={header.column.getCanSort()}
                                 class:select-none={true}
-                                onclick={() => {
-                                    header.column.getToggleSortingHandler()?.(null); 
+                                onclick={(e) => {
+                                    header.column.getToggleSortingHandler()?.(e); 
                                     handleSortOrFilterChange(); 
                                 }}
                             >

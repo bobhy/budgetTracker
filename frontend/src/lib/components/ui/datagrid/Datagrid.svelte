@@ -266,8 +266,37 @@
         }
     }
 
-    // -- Copy / Clipboard --
+
+    // -- Copy / Clipboard & Keyboard Navigation --
     async function handleKeyDown(e: KeyboardEvent) {
+
+        // Handle scrolling keys
+        if (tableContainer) {
+            const scrollAmount = {
+                'ArrowDown': 40,
+                'ArrowUp': -40,
+                'PageDown': tableContainer.clientHeight,
+                'PageUp': -tableContainer.clientHeight,
+                'Home': -tableContainer.scrollTop,
+                'End': tableContainer.scrollHeight
+            }[e.key];
+            
+
+            if (scrollAmount !== undefined) {
+                e.preventDefault();
+                if (e.key === 'Home') {
+                    tableContainer.scrollTop = 0;
+                } else if (e.key === 'End') {
+                    tableContainer.scrollTop = tableContainer.scrollHeight;
+                } else {
+                    tableContainer.scrollTop += scrollAmount;
+                }
+
+                return;
+            }
+        }
+        
+        // Handle copy
         if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
             if (selectedRowIndices.size === 0) return;
             
@@ -308,6 +337,7 @@
             }
         }
     }
+
 
     // -- Editing --
     function handleRowDoubleClick(index: number) {
@@ -433,7 +463,6 @@
                     ondblclick={() => handleRowDoubleClick(virtualRow.index)}
                     role="row"
                     aria-selected={isSelected}
-                    tabindex={row ? row.original[config.keyColumn] : 0}
                 >
                      {#if row}
                         {#each row.getVisibleCells() as cell}

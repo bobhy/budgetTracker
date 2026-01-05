@@ -25,6 +25,7 @@
     let hasMore = $state(true); 
     let isLoading = $state(false);
 	let sorting = $state<SortingState>([]);
+    let columnSizing = $state({});
     let globalFilter = $state(""); 
     
     // Selection State
@@ -75,6 +76,9 @@
         state: {
             get sorting() {
                 return sorting;
+            },
+            get columnSizing() {
+                return columnSizing;
             }
         },
         onSortingChange: (updater) => {
@@ -82,6 +86,13 @@
                 sorting = updater(sorting);
             } else {
                 sorting = updater;
+            }
+        },
+        onColumnSizingChange: (updater) => {
+            if (typeof updater === 'function') {
+                columnSizing = updater(columnSizing);
+            } else {
+                columnSizing = updater;
             }
         }
 	};
@@ -359,7 +370,7 @@
              {#each table.getHeaderGroups() as headerGroup}
                 {#each headerGroup.headers as header}
                     <div class="relative px-4 py-3 text-left font-medium text-muted-foreground select-none flex items-center gap-1 group border-r border-transparent hover:border-border/50 transition-colors"
-                         style="width: {header.getSize()}px; flex: {header.column.getIsResizing() ? '0 0 auto' : '1 1 0%'};">
+                         style="width: {header.getSize()}px; flex: 0 0 auto;">
                         {#if !header.isPlaceholder}
                             <button
                                 class="flex items-center gap-1 hover:text-foreground transition-colors w-full overflow-hidden"
@@ -390,8 +401,8 @@
                             <div
                                 role="separator"
                                 class="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary opacity-0 group-hover:opacity-100"
-                                onmousedown={header.getResizeHandler()}
-                                ontouchstart={header.getResizeHandler()}
+                                onmousedown={(e) => header.getResizeHandler()(e)}
+                                ontouchstart={(e) => header.getResizeHandler()(e)}
                             ></div>
                         {/if}
                     </div>
@@ -429,7 +440,7 @@
                             {@const colConfig = (cell.column.columnDef.meta as any)?.config as DataGridColumn}
                             <div 
                                 class={cn("px-4 py-2 text-sm flex items-center border-r border-transparent last:border-0", colConfig ? getCellStyles(colConfig) : "")}
-                                style="width: {cell.column.getSize()}px; flex: 1 1 0%;"
+                                style="width: {cell.column.getSize()}px; flex: 0 0 auto;"
                             >
                                 <FlexRender
                                     content={cell.column.columnDef.cell}

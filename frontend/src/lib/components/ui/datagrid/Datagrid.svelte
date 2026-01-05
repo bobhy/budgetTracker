@@ -101,6 +101,21 @@
 
     // -- Virtualization --
 	let tableContainer: HTMLDivElement | undefined = $state();
+    let headerContainer: HTMLDivElement | undefined = $state();
+    
+    // Sync horizontal scroll between header and body
+    $effect(() => {
+        if (!tableContainer || !headerContainer) return;
+        
+        const handleScroll = () => {
+            if (headerContainer && tableContainer) {
+                headerContainer.scrollLeft = tableContainer.scrollLeft;
+            }
+        };
+        
+        tableContainer.addEventListener('scroll', handleScroll);
+        return () => tableContainer?.removeEventListener('scroll', handleScroll);
+    });
     
 	const rowVirtualizer = createVirtualizer({
         count: 0,
@@ -395,7 +410,7 @@
     {/if}
 
     <!-- Header -->
-    <div class="flex-none border-b bg-muted/40 font-medium text-sm">
+    <div bind:this={headerContainer} class="flex-none border-b bg-muted/40 font-medium text-sm overflow-x-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
         <div class="flex w-full min-w-max">
              {#each table.getHeaderGroups() as headerGroup}
                 {#each headerGroup.headers as header}
@@ -433,6 +448,7 @@
                                 class="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary opacity-0 group-hover:opacity-100"
                                 onmousedown={(e) => header.getResizeHandler()(e)}
                                 ontouchstart={(e) => header.getResizeHandler()(e)}
+                                ondblclick={() => header.column.resetSize()}
                             ></div>
                         {/if}
                     </div>

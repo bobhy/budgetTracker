@@ -347,7 +347,9 @@
                                 {/if}
                             </button>
                             
+                            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                             <div
+                                role="separator"
                                 class="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary opacity-0 group-hover:opacity-100"
                                 onmousedown={header.getResizeHandler()}
                                 ontouchstart={header.getResizeHandler()}
@@ -381,6 +383,7 @@
                     ondblclick={() => handleRowDoubleClick(virtualRow.index)}
                     role="row"
                     aria-selected={isSelected}
+                    tabindex={row ? row.original[config.keyColumn] : 0}
                 >
                      {#if row}
                         {#each row.getVisibleCells() as cell}

@@ -12,7 +12,7 @@
 	import { onMount, untrack } from 'svelte';
     import { cn } from '$lib/utils';
     import * as Dialog from '$lib/components/ui/dialog';
-    import { ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-svelte';
+    import { ArrowUp, ArrowDown, ArrowUpDown } from '@lucide/svelte';
 
 	let { config, dataSource, onEdit, onSelection, class: className }: DatagridProps = $props();
 

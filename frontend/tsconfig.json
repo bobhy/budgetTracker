@@ -17,6 +17,7 @@
     "checkJs": true,
     "isolatedModules": true,
     "sourceMap": true,
+    "noEmit": true,
     "paths": {
       "$lib/*": [
         "src/lib/*"
@@ -43,8 +44,7 @@
     "src/**/*.ts",
     "src/**/*.js",
     "src/**/*.svelte",
-    "wailsjs/**/*.d.ts",
-    "wailsjs/**/*.js"
+    "wailsjs/**/*.d.ts"
   ],
   "references": [
     {

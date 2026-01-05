@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { navigation } from '$lib/stores/navigation.svelte';
+  import { navigation } from '$lib/stores/navigation.svelte.ts';
   import Navbar from '$lib/components/Navbar.svelte';
   import Beneficiaries from '$lib/views/Beneficiaries.svelte';
   import Accounts from '$lib/views/Accounts.svelte';
   import Budgets from '$lib/views/Budgets.svelte';
+  import OldTransactions from '$lib/views/OldTransactions.svelte';
   import Transactions from '$lib/views/Transactions.svelte';
   import Database from '$lib/views/Database.svelte';
   import Import from '$lib/views/Import.svelte';
@@ -19,6 +20,8 @@
       <Accounts />
     {:else if navigation.currentView === 'budgets'}
       <Budgets />
+    {:else if navigation.currentView === 'old_transactions'}
+      <OldTransactions />
     {:else if navigation.currentView === 'transactions'}
       <Transactions />
     {:else if navigation.currentView === 'import'}

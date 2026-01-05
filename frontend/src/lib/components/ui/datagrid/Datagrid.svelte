@@ -1,18 +1,20 @@
 <script lang="ts">
 	import {
-		createSvelteTable,
+		createTable,
 		getCoreRowModel,
 		FlexRender,
 		type ColumnDef,
 		type TableOptions,
         type Row
 	} from '@tanstack/svelte-table';
+	// import FlexRender from './FlexRender.svelte';
 	import { createVirtualizer } from '@tanstack/svelte-virtual';
 	import type { DatagridProps, DataGridConfig, DataGridColumn, SortKey } from './DatagridTypes';
 	import { onMount, untrack } from 'svelte';
     import { cn } from '$lib/utils';
     import * as Dialog from '$lib/components/ui/dialog';
     import { ArrowUp, ArrowDown, ArrowUpDown } from '@lucide/svelte';
+    import { writable, get } from 'svelte/store';
 
 	let { config, dataSource, onEdit, onSelection, class: className }: DatagridProps = $props();
 
@@ -71,28 +73,45 @@
         columnResizeMode: 'onChange',
 	};
 
-	const table = createSvelteTable(options);
+	const table = createTable(options);
 
     // -- Virtualization --
 	let tableContainer: HTMLDivElement | undefined = $state();
     
 	const rowVirtualizer = createVirtualizer({
-		get count() {
-            return hasMore ? data.length + 1 : data.length;
-		},
-		getScrollElement: () => tableContainer || null,
-		estimateSize: () => 40, 
-		overscan: 5
-	});
+        count: 0,
+        getScrollElement: () => tableContainer || null,
+        estimateSize: () => 40,
+        overscan: 5
+    });
 
-    const virtualRows = $derived(rowVirtualizer.getVirtualItems());
-    const totalSize = $derived(rowVirtualizer.getTotalSize());
+    $effect(() => {
+        // Update virtualizer when dependencies change
+        const count = hasMore ? data.length + 1 : data.length;
+        const scrollElement = tableContainer || null;
+        
+
+        // Use get() to avoid subscription loop
+        get(rowVirtualizer).setOptions({
+            count,
+            getScrollElement: () => scrollElement,
+            estimateSize: () => 40,
+            overscan: 5
+        });
+    });
+
+
+
+    const virtualRows = $derived($rowVirtualizer.getVirtualItems());
+    const totalSize = $derived($rowVirtualizer.getTotalSize());
 
     // -- Data Fetching --
     let backendFetchedCount = $state(0);
     
     async function performFetch(wantedGridRows: number) {
+
         if (isLoading || !hasMore) return;
+        
         isLoading = true;
         
         try {
@@ -139,8 +158,10 @@
     
     // Effect: Watch scroll and fetch
     $effect(() => {
+
         if (!virtualRows.length) {
             if (data.length === 0 && hasMore && !isLoading) {
+
                  performFetch(config.maxVisibleRows || 50); 
             }
             return;
@@ -317,7 +338,7 @@
     <!-- Header -->
     <div class="flex-none border-b bg-muted/40 font-medium text-sm">
         <div class="flex w-full min-w-max">
-             {#each $table.getHeaderGroups() as headerGroup}
+             {#each table.getHeaderGroups() as headerGroup}
                 {#each headerGroup.headers as header}
                     <div class="relative px-4 py-3 text-left font-medium text-muted-foreground select-none flex items-center gap-1 group border-r border-transparent hover:border-border/50 transition-colors"
                          style="width: {header.getSize()}px; flex: {header.column.getIsResizing() ? '0 0 auto' : '1 1 0%'};">
@@ -369,7 +390,7 @@
         <div style="height: {totalSize}px; width: 100%; position: relative;">
             
             {#each virtualRows as virtualRow (virtualRow.index)}
-                {@const row = $table.getRowModel().rows[virtualRow.index]}
+                {@const row = table.getRowModel().rows[virtualRow.index]}
                 {@const isSelected = selectedRowIndices.has(virtualRow.index)}
                 
                 <!-- svelte-ignore a11y_click_events_have_key_events -->

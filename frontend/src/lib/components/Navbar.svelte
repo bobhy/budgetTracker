@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { navigation, type View } from '$lib/stores/navigation.svelte';
+	import { navigation, type View } from '$lib/stores/navigation.svelte.ts';
 	import { Database, Users, CreditCard, PiggyBank, Receipt, Upload } from '@lucide/svelte';
 	import * as Menubar from '$lib/components/ui/menubar';
     import { Button } from '$lib/components/ui/button';
@@ -8,6 +8,7 @@
         { label: 'Beneficiaries', view: 'beneficiaries', icon: Users },
         { label: 'Accounts', view: 'accounts', icon: CreditCard },
         { label: 'Budgets', view: 'budgets', icon: PiggyBank },
+        { label: 'Old Tx', view: 'old_transactions', icon: Receipt },
         { label: 'Transactions', view: 'transactions', icon: Receipt },
         { label: 'Import', view: 'import', icon: Upload },
         { label: 'Database', view: 'database', icon: Database },

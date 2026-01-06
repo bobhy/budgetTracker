@@ -8,7 +8,7 @@
         { label: 'Beneficiaries', view: 'beneficiaries', icon: Users },
         { label: 'Accounts', view: 'accounts', icon: CreditCard },
         { label: 'Budgets', view: 'budgets', icon: PiggyBank },
-        { label: 'Old Tx', view: 'old_transactions', icon: Receipt },
+
         { label: 'Transactions', view: 'transactions', icon: Receipt },
         { label: 'Import', view: 'import', icon: Upload },
         { label: 'Database', view: 'database', icon: Database },

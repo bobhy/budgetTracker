@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import DataTable from '$lib/components/ui/datagrid/DataTable.svelte';
-    import type { DataTableConfig, DataSourceCallback } from '$lib/components/ui/datagrid/DataTableTypes';
+    import { DataTable } from 'datatable';
+    import type { DataTableConfig, DataSourceCallback } from 'datatable';
     import { GetTransactions } from '$wailsjs/go/main/App';
 
     let allTransactions: any[] = $state([]);

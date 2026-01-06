@@ -48,6 +48,7 @@
   "dependencies": {
     "@tanstack/svelte-table": "^9.0.0-alpha.10",
     "@tanstack/svelte-virtual": "^3.13.16",
+    "datatable": "file:../../dataTable",
     "tailwindcss": "^4.1.4"
   }
 }

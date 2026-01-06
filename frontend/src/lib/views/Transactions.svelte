@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import Datagrid from '$lib/components/ui/datagrid/Datagrid.svelte';
-    import type { DataGridConfig, DataSourceCallback } from '$lib/components/ui/datagrid/DatagridTypes';
+    import DataTable from '$lib/components/ui/datagrid/DataTable.svelte';
+    import type { DataTableConfig, DataSourceCallback } from '$lib/components/ui/datagrid/DataTableTypes';
     import { GetTransactions } from '$wailsjs/go/main/App';
 
     let allTransactions: any[] = $state([]);
 
-    const config: DataGridConfig = {
+    const config: DataTableConfig = {
         name: 'transactions_grid',
         keyColumn: 'ID',
         title: 'Transactions',
@@ -38,62 +38,31 @@
 
         // 1. Sort
         if (sortKeys.length > 0) {
-            const sk = sortKeys[0]; // Datagrid only passes one sort key usually? Or array?
-            // Types say array.
+            const sk = sortKeys[0]; // DataTable only passes one sort key usually? Or array?
             result.sort((a, b) => {
                 const valA = a[sk.key];
                 const valB = b[sk.key];
-                
                 if (valA < valB) return sk.direction === 'asc' ? -1 : 1;
                 if (valA > valB) return sk.direction === 'asc' ? 1 : -1;
                 return 0;
             });
-        } 
-        // Default sort by Date desc if no sort?
-        else {
-             result.sort((a, b) => {
+        } else {
+            result.sort((a, b) => {
                 if (a.PostedDate < b.PostedDate) return 1;
                 if (a.PostedDate > b.PostedDate) return -1;
                 return 0;
             });
         }
 
-        // 2. Pagination
-        // The Datagrid asks for [startRow ... startRow+numRows]
-        // But wait, the Datagrid logic (client side filtering) *also* exists?
-        // No, `Datagrid.svelte` line 116 "Filter locally".
-        // The Datagrid assumes dataSource returns "raw rows" matching the query
-        // BUT the Datagrid handles filtering "locally" on the batch it got?
-        // Actually line 116 `const filtered = newRawRows.filter(...)` suggests Datagrid 
-        // filters what it RECEIVED from dataSource.
-        // If the dataSource returns paginated data (e.g. rows 0-100), and I type "Walmart",
-        // and "Walmart" is in row 500, Datagrid will never see it if I don't scroll?
-        // Wait, the requirements said: "Filter filters the data source... masking any row".
-        // "Find scrolls the grid".
-        // The Current Datagrid Implementation (Datagrid.svelte):
-        // It fetches chunks.
-        // It filters those chunks *locally* (L116).
-        // If `hasMore` is true, it keeps fetching?
-        // No, `performFetch` loop: `while (addedRows < wantedGridRows && hasMore...)`
-        // So if I filter "Walmart", it will keep asking dataSource for more rows until it finds enough matches OR dataSource runs out.
-        // THIS IS GOOD. It means dataSource just needs to provide "next N rows".
-        // However, `dataSource` signature does NOT take a "filter string". 
-        // So the backend (or this callback) doesn't know about the filter.
-        // So `Datagrid` responsibilty is to scan the stream provided by dataSource.
-        
-        // So this callback just returns the slice of *sorted* data.
-        
         const endRow = Math.min(startRow + numRows, result.length);
         const slice = result.slice(startRow, endRow);
-        
         return slice;
     };
-
 </script>
 
 <div class="h-[calc(100vh-100px)] w-full p-4">
     {#if allTransactions.length > 0}
-        <Datagrid {config} {dataSource} />
+        <DataTable {config} {dataSource} />
     {:else}
         <div class="flex items-center justify-center h-full text-muted-foreground">
             Loading transactions...

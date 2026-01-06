@@ -1,4 +1,4 @@
-// NOTE: This file is a copy of Datagrid.svelte with renamed identifiers.
+// NOTE: This file implements the DataTable component (renamed from DataGrid).
 <script lang="ts">
 	import {
 		createTable,

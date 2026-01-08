@@ -27,7 +27,25 @@
     onMount(async () => {
          // Load *all* transactions for now, as GetTransactions returns []models.Transaction
          // Ideally backend should support pagination, but for now we simulate it in dataSource
-         allTransactions = await GetTransactions() || [];
+         try {
+             allTransactions = await GetTransactions() || [];
+         } catch (e) {
+             console.warn("Backend unavailable, using mocks");
+         }
+         
+         if (allTransactions.length === 0) {
+             // Generate mock data for reproduction
+             allTransactions = Array.from({ length: 100 }, (_, i) => ({
+                 ID: i,
+                 PostedDate: new Date().toISOString(),
+                 AccountID: 'ACC-001',
+                 Amount: Math.random() * 10000,
+                 Description: `Transaction ${i} with somewhat long description to force wrapping and testing resize observer behavior ` + (i % 3 === 0 ? "repeated text ".repeat(10) : ""),
+                 Beneficiary: 'Merchant ' + i,
+                 BudgetLine: 'General',
+                 Tag: 'Test'
+             }));
+         }
     });
 
     const dataSource: DataSourceCallback = async (columnKeys, startRow, numRows, sortKeys) => {

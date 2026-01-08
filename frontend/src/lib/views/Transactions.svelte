@@ -17,7 +17,7 @@
             { name: 'PostedDate', title: 'Date', isSortable: true, justify: 'left' },
             { name: 'AccountID', title: 'Account', isSortable: true },
             { name: 'Amount', title: 'Amount', isSortable: true, formatter: (v) => (v/100).toFixed(2) },
-            { name: 'Description', title: 'Description', isSortable: true, wrappable: 'word' },
+            { name: 'Description', title: 'Descriptionx', isSortable: true, wrappable: 'word', maxLines: 3, maxWidth:1000},
             { name: 'Beneficiary', title: 'Beneficiary', isSortable: true },
             { name: 'BudgetLine', title: 'Budget Line', isSortable: true },
             { name: 'Tag', title: 'Tag', isSortable: true }

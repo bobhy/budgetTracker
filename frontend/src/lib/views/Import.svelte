@@ -3,7 +3,6 @@
   import { Button } from "$lib/components/ui/button";
   // Removed unused Select imports
   import * as Card from "$lib/components/ui/card";
-  import RawTransactionsTable from "$lib/components/RawTransactionsTable.svelte";
   import { 
     ImportFile, 
     SelectFile, 

@@ -15,10 +15,10 @@
         isFindable: true,
         columns: [
             { name: 'PostedDate', title: 'Date', isSortable: true, justify: 'left' },
-            { name: 'AccountID', title: 'Account', isSortable: true },
+            { name: 'AccountID', title: 'Account', isSortable: true, justify: 'center' },
             { name: 'Amount', title: 'Amount', isSortable: true, justify: 'right', formatter: (v) => (v/100).toFixed(2) },
             { name: 'Description', title: 'Description', isSortable: true, wrappable: 'word', maxLines: 3, maxWidth:1000},
-            { name: 'Beneficiary', title: 'Beneficiary', isSortable: true },
+            { name: 'Beneficiary', title: 'Beneficiary', isSortable: true, justify: 'center' },
             { name: 'BudgetLine', title: 'Budget Line', isSortable: true },
             { name: 'Tag', title: 'Tag', isSortable: true }
         ]

@@ -10,6 +10,11 @@ type Money int64
 // Date is stored as string YYYY-MM-DD
 type Date string
 
+type SortOption struct {
+	Key       string `json:"key"`
+	Direction string `json:"direction"` // "asc" or "desc"
+}
+
 type Beneficiary struct {
 	Name string `gorm:"primaryKey"`
 

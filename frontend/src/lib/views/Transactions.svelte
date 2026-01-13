@@ -1,16 +1,16 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, untrack } from 'svelte';
     import { DataTable } from 'datatable';
     import type { DataTableConfig, DataSourceCallback } from 'datatable';
-    import { GetTransactions } from '$wailsjs/go/main/App';
-
-    let allTransactions: any[] = $state([]);
+    // Ideally this import exists after Wails rebuild
+    import { GetTransactionsPaginated } from '$wailsjs/go/main/App';
+    import { models } from '$wailsjs/go/models';
 
     const config: DataTableConfig = {
         name: 'transactions_grid',
-        keyColumn: 'ID',
+        keyColumn: 'ID', // Maps to Go struct field ID (json:"ID")
         title: 'Transactions',
-        maxVisibleRows: 20, // Or whatever fits
+        maxVisibleRows: 20,
         isFilterable: true,
         isFindable: true,
         columns: [
@@ -24,66 +24,81 @@
         ]
     };
 
-    onMount(async () => {
-         // Load *all* transactions for now, as GetTransactions returns []models.Transaction
-         // Ideally backend should support pagination, but for now we simulate it in dataSource
-         try {
-             allTransactions = await GetTransactions() || [];
-         } catch (e) {
-             console.warn("Backend unavailable, using mocks");
-         }
-         
-         if (allTransactions.length === 0) {
-             // Generate mock data for reproduction
-             allTransactions = Array.from({ length: 100 }, (_, i) => ({
-                 ID: i,
-                 PostedDate: new Date().toISOString(),
-                 AccountID: 'ACC-001',
-                 Amount: Math.random() * 10000,
-                 Description: `Transaction ${i} with somewhat long description to force wrapping and testing resize observer behavior ` + (i % 3 === 0 ? "repeated text ".repeat(10) : ""),
-                 Beneficiary: 'Merchant ' + i,
-                 BudgetLine: 'General',
-                 Tag: 'Test'
-             }));
-         }
-    });
+    // State for client-side filtering + backend pagination
+    let cachedMatches: any[] = [];
+    let backendOffset = 0;
+    let backendHasMore = true;
+    
+    // Change detection
+    let lastSortJSON = "";
+    let lastFilterJSON = "";
 
-    const dataSource: DataSourceCallback = async (columnKeys, startRow, numRows, sortKeys) => {
-        // Since backend doesn't seem to have paginated API exposed yet [based on limited exploration],
-        // we filter/sort 'allTransactions' in memory.
-        
-        let result = [...allTransactions];
+    const dataSource: DataSourceCallback = async (columnKeys, startRow, numRows, sortKeys, filters) => {
+        const sortJSON = JSON.stringify(sortKeys);
+        const filterJSON = JSON.stringify(filters);
 
-        // 1. Sort
-        if (sortKeys.length > 0) {
-            const sk = sortKeys[0]; // DataTable only passes one sort key usually? Or array?
-            result.sort((a, b) => {
-                const valA = a[sk.key];
-                const valB = b[sk.key];
-                if (valA < valB) return sk.direction === 'asc' ? -1 : 1;
-                if (valA > valB) return sk.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        } else {
-            result.sort((a, b) => {
-                if (a.PostedDate < b.PostedDate) return 1;
-                if (a.PostedDate > b.PostedDate) return -1;
-                return 0;
-            });
+        // Reset if context changes
+        if (sortJSON !== lastSortJSON || filterJSON !== lastFilterJSON) {
+            cachedMatches = [];
+            backendOffset = 0;
+            backendHasMore = true;
+            lastSortJSON = sortJSON;
+            lastFilterJSON = filterJSON;
         }
 
-        const endRow = Math.min(startRow + numRows, result.length);
-        const slice = result.slice(startRow, endRow);
-        return slice;
+        // Map SortKeys
+        const goSortKeys: models.SortOption[] = sortKeys.map(k => {
+             return { key: k.key, direction: k.direction } as models.SortOption; 
+        });
+
+        // Filter Function
+        const globalTerm = filters?.global?.toLowerCase() || "";
+        const isMatch = (row: any) => {
+             if (!globalTerm) return true;
+             // Search common text fields
+             // Note: Depending on row structure (Go struct), fields might be Capitalized.
+             // We can check values.
+             return Object.values(row).some(v => String(v).toLowerCase().includes(globalTerm));
+        };
+
+        // Fetch Loop
+        const BATCH_SIZE = 100;
+        const neededEnd = startRow + numRows;
+
+        while (cachedMatches.length < neededEnd && backendHasMore) {
+            try {
+                // Fetch next batch from backend (sorted, but NOT filtered)
+                const batch = await GetTransactionsPaginated(backendOffset, BATCH_SIZE, goSortKeys);
+                
+                if (batch && batch.length > 0) {
+                    // Filter in memory
+                    const matches = batch.filter(isMatch);
+                    cachedMatches.push(...matches);
+                    
+                    backendOffset += batch.length;
+                    
+                    // If batch was full, we assume there MIGHT be more. 
+                    // If batch < BATCH_SIZE, we are definitely done.
+                    if (batch.length < BATCH_SIZE) {
+                        backendHasMore = false;
+                    }
+                } else {
+                    backendHasMore = false;
+                }
+            } catch (e) {
+                console.error("Backend fetch error:", e);
+                backendHasMore = false; 
+                break;
+            }
+        }
+
+        // Return slice of what we found
+        return cachedMatches.slice(startRow, neededEnd);
     };
+
 </script>
 
+
 <div class="h-[calc(100vh-100px)] w-full p-4">
-    {#if allTransactions.length > 0}
-        <DataTable {config} {dataSource} />
-    {:else}
-        <div class="flex items-center justify-center h-full text-muted-foreground">
-            Loading transactions...
-        </div>
-    {/if}
+    <DataTable {config} {dataSource} />
 </div>

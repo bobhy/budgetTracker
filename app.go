@@ -85,6 +85,10 @@ func (a *App) DeleteBudget(name string) error {
 func (a *App) GetTransactions() ([]models.Transaction, error) {
 	return a.service.GetTransactions()
 }
+
+func (a *App) GetTransactionsPaginated(start, count int, sortKeys []models.SortOption) ([]models.Transaction, error) {
+	return a.service.GetTransactionsPaginated(start, count, sortKeys)
+}
 func (a *App) AddTransaction(postedDate models.Date, accountID string, amount models.Money, description, tag, beneficiary, budgetLine, rawHint string) error {
 	return a.service.AddTransaction(postedDate, accountID, amount, description, tag, beneficiary, budgetLine, rawHint)
 }

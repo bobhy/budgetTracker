@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path";
+import { getSveltekitMocksAlias, sveltekitOptimizeDepsExclude } from "datatable/vite";
 
 export default defineConfig(({ mode }) => ({
   plugins: [
@@ -14,10 +15,17 @@ export default defineConfig(({ mode }) => ({
     alias: {
       $lib: resolve("./src/lib"),
       $wailsjs: resolve("./wailsjs"),
+      ...getSveltekitMocksAlias(),
     },
   },
   build: {
     sourcemap: mode === "development" ? "inline" : false,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.message.includes('externalized for browser compatibility')) return;
+        warn(warning);
+      }
+    }
   },
   server: {
     port: 5173,
@@ -26,4 +34,8 @@ export default defineConfig(({ mode }) => ({
   css: {
     devSourcemap: mode === "development",
   },
+  optimizeDeps: {
+    exclude: sveltekitOptimizeDepsExclude,
+  },
 }));
+

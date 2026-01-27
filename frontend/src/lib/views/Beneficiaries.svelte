@@ -7,8 +7,9 @@
    import { Label } from "$lib/components/ui/label";
    import { Trash2, Pencil, Plus } from "@lucide/svelte";
    import { GetBeneficiaries, AddBeneficiary, UpdateBeneficiary, DeleteBeneficiary } from "../../../wailsjs/go/main/App";
+   import { models } from '$wailsjs/go/models';
 
-   let beneficiaries = $state([]);
+   let beneficiaries: models.Beneficiary[] = $state([]);
    let isDialogOpen = $state(false);
    let isEditing = $state(false);
    let currentName = $state("");

@@ -1,9 +1,9 @@
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
     import { DataTable } from 'datatable';
-    import type { DataTableConfig, DataSourceCallback } from 'datatable';
+    import type { DataTableConfig, DataSourceCallback, RowAction, RowEditResult } from 'datatable';
     // Ideally this import exists after Wails rebuild
-    import { GetTransactionsPaginated } from '$wailsjs/go/main/App';
+    import { GetTransactionsPaginated, AddTransaction, UpdateTransaction, DeleteTransaction } from '$wailsjs/go/main/App';
     import { models } from '$wailsjs/go/models';
 
     const config: DataTableConfig = {
@@ -13,6 +13,7 @@
         maxVisibleRows: 20,
         isFilterable: true,
         isFindable: true,
+        isEditable: true,
         columns: [
             { name: 'PostedDate', title: 'Date', isSortable: true, justify: 'left' },
             { name: 'AccountID', title: 'Account', isSortable: true, justify: 'center' },
@@ -168,7 +169,7 @@
                          }
                      } else {
                          backendHasMore = false;
-                     }
+                      }
                  } catch (e) {
                      console.error("Find fetch error", e);
                      break;
@@ -185,9 +186,45 @@
         return null; // Not found
     };
 
+    const handleRowEdit = async (action: RowAction, row: any): Promise<RowEditResult> => {
+        try {
+            if (action === 'update') {
+                await UpdateTransaction(
+                    row.ID,
+                    row.PostedDate,
+                    row.AccountID,
+                    row.Amount,
+                    row.Description,
+                    row.Tag,
+                    row.Beneficiary,
+                    row.BudgetLine,
+                    row.RawHint || ""
+                );
+            } else if (action === 'create') {
+                await AddTransaction(
+                    row.PostedDate,
+                    row.AccountID,
+                    row.Amount,
+                    row.Description,
+                    row.Tag,
+                    row.Beneficiary,
+                    row.BudgetLine,
+                    row.RawHint || ""
+                );
+            } else if (action === 'delete') {
+                await DeleteTransaction(row.ID);
+            }
+            return true;
+        } catch (e) {
+            console.error(`Transaction ${action} failed:`, e);
+            return { error: String(e) };
+        }
+    };
+
 </script>
 
 
 <div class="h-[calc(100vh-100px)] w-full p-4">
-    <DataTable {config} {dataSource} bind:globalFilter={filterTerm} bind:findTerm={findTerm} onFind={handleFind} />
+    <DataTable {config} {dataSource} bind:globalFilter={filterTerm} bind:findTerm={findTerm} onFind={handleFind} onRowEdit={handleRowEdit} />
 </div>
+

@@ -7,9 +7,10 @@
    import { Label } from "$lib/components/ui/label";
    import { Trash2, Pencil, Plus } from "@lucide/svelte";
    import { GetAccounts, AddAccount, UpdateAccount, DeleteAccount, GetBeneficiaries } from "../../../wailsjs/go/main/App";
+   import { models } from '$wailsjs/go/models';
 
-   let accounts = $state([]);
-   let beneficiaries = $state([]);
+   let accounts: models.Account[] = $state([]);
+   let beneficiaries: models.Beneficiary[] = $state([]);
    
    let isDialogOpen = $state(false);
    let isEditing = $state(false);

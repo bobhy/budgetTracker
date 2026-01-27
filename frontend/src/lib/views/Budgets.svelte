@@ -7,9 +7,10 @@
    import { Label } from "$lib/components/ui/label";
    import { Trash2, Pencil, Plus } from "@lucide/svelte";
    import { GetBudgets, AddBudget, UpdateBudget, DeleteBudget, GetBeneficiaries } from "../../../wailsjs/go/main/App";
+   import { models } from '$wailsjs/go/models';
 
-   let budgets = $state([]);
-   let beneficiaries = $state([]);
+   let budgets: models.Budget[] = $state([]);
+   let beneficiaries: models.Beneficiary[] = $state([]);
    
    let isDialogOpen = $state(false);
    let isEditing = $state(false);

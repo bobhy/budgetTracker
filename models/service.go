@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 
 	"gorm.io/driver/sqlite"
@@ -12,7 +13,7 @@ type Service struct {
 }
 
 func NewService(dbPath string) (*Service, error) {
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("%s?%s", dbPath, "_foreign_keys=on")), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

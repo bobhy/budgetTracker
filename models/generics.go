@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
 )
 
@@ -62,4 +64,32 @@ func GetPage[T any](db *gorm.DB, skip, count int, order string, query interface{
 
 	err := dbQuery.Offset(skip).Limit(count).Find(&items).Error
 	return items, total, err
+}
+
+// BuildOrderString converts slice of SortOption to a GORM order string.
+// columnMap provides optional mapping from frontend keys to database column names.
+func BuildOrderString(sortKeys []SortOption, columnMap map[string]string) string {
+	var parts []string
+	for _, sk := range sortKeys {
+		if sk.Key == "" || sk.Key == "none" {
+			continue
+		}
+
+		column := sk.Key
+		if columnMap != nil {
+			if mapped, ok := columnMap[sk.Key]; ok {
+				column = mapped
+			}
+		}
+
+		// Map common camelCase to snake_case if not in map?
+		// For now we rely on the map or exact matches.
+
+		direction := "asc"
+		if sk.Direction == "desc" {
+			direction = "desc"
+		}
+		parts = append(parts, column+" "+direction)
+	}
+	return strings.Join(parts, ", ")
 }

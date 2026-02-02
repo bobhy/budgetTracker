@@ -38,69 +38,143 @@ func (a *App) CleanDatabase() error {
 // --- Beneficiaries ---
 
 func (a *App) GetBeneficiaries() ([]models.Beneficiary, error) {
-	return a.service.GetBeneficiaries()
+	return models.GetAll[models.Beneficiary](a.service.DB)
 }
 func (a *App) AddBeneficiary(name string) error {
-	return a.service.AddBeneficiary(name)
+	return models.Create(a.service.DB, &models.Beneficiary{Name: name})
 }
 func (a *App) UpdateBeneficiary(oldName, newName string) error {
-	return a.service.UpdateBeneficiary(oldName, newName)
+	if oldName == newName {
+		return nil
+	}
+	return a.service.DB.Model(&models.Beneficiary{Name: oldName}).Update("name", newName).Error
 }
 func (a *App) DeleteBeneficiary(name string) error {
-	return a.service.DeleteBeneficiary(name)
+	return models.Delete(a.service.DB, &models.Beneficiary{Name: name})
 }
 
 // --- Accounts ---
-// Dummy comment to trigger regeneration
 
 func (a *App) GetAccounts() ([]models.Account, error) {
-	return a.service.GetAccounts()
+	return models.GetAll[models.Account](a.service.DB)
 }
 func (a *App) GetAccountsPaginated(start, count int, sortKeys []models.SortOption) ([]models.Account, error) {
-	return a.service.GetAccountsPaginated(start, count, sortKeys)
+	columnMap := map[string]string{
+		"ID":            "id",
+		"Name":          "name",
+		"Description":   "description",
+		"BeneficiaryID": "beneficiary_id",
+	}
+	orderStr := models.BuildOrderString(sortKeys, columnMap)
+	txs, _, err := models.GetPage[models.Account](a.service.DB, start, count, orderStr, nil)
+	return txs, err
 }
 func (a *App) AddAccount(name, description, beneficiaryID string) error {
-	return a.service.AddAccount(name, description, beneficiaryID)
+	return models.Create(a.service.DB, &models.Account{
+		Name:          name,
+		Description:   description,
+		BeneficiaryID: beneficiaryID,
+	})
 }
 func (a *App) UpdateAccount(oldName, newName, description, beneficiaryID string) error {
-	return a.service.UpdateAccount(oldName, newName, description, beneficiaryID)
+	if oldName != newName {
+		return a.service.DB.Model(&models.Account{Name: oldName}).Updates(models.Account{
+			Name:          newName,
+			Description:   description,
+			BeneficiaryID: beneficiaryID,
+		}).Error
+	}
+	return a.service.DB.Model(&models.Account{Name: oldName}).Updates(models.Account{
+		Description:   description,
+		BeneficiaryID: beneficiaryID,
+	}).Error
 }
 func (a *App) DeleteAccount(name string) error {
-	return a.service.DeleteAccount(name)
+	return models.Delete(a.service.DB, &models.Account{Name: name})
 }
 
 // --- Budgets ---
 
 func (a *App) GetBudgets() ([]models.Budget, error) {
-	return a.service.GetBudgets()
+	return models.GetAll[models.Budget](a.service.DB)
 }
 func (a *App) AddBudget(name, description, beneficiaryID string, amount models.Money, intervalMonths int) error {
-	return a.service.AddBudget(name, description, beneficiaryID, amount, intervalMonths)
+	return models.Create(a.service.DB, &models.Budget{
+		Name:           name,
+		Description:    description,
+		BeneficiaryID:  beneficiaryID,
+		Amount:         amount,
+		IntervalMonths: intervalMonths,
+	})
 }
 func (a *App) UpdateBudget(oldName, newName, description, beneficiaryID string, amount models.Money, interval int) error {
-	return a.service.UpdateBudget(oldName, newName, description, beneficiaryID, amount, interval)
+	if oldName != newName {
+		return a.service.DB.Model(&models.Budget{Name: oldName}).Updates(models.Budget{
+			Name:           newName,
+			Description:    description,
+			BeneficiaryID:  beneficiaryID,
+			Amount:         amount,
+			IntervalMonths: interval,
+		}).Error
+	}
+	return a.service.DB.Model(&models.Budget{Name: oldName}).Updates(models.Budget{
+		Description:    description,
+		BeneficiaryID:  beneficiaryID,
+		Amount:         amount,
+		IntervalMonths: interval,
+	}).Error
 }
 func (a *App) DeleteBudget(name string) error {
-	return a.service.DeleteBudget(name)
+	return models.Delete(a.service.DB, &models.Budget{Name: name})
 }
 
 // --- Transactions ---
 
 func (a *App) GetTransactions() ([]models.Transaction, error) {
-	return a.service.GetTransactions()
+	return models.GetAll[models.Transaction](a.service.DB.Preload("Account"))
 }
 
 func (a *App) GetTransactionsPaginated(start, count int, sortKeys []models.SortOption) ([]models.Transaction, error) {
-	return a.service.GetTransactionsPaginated(start, count, sortKeys)
+	columnMap := map[string]string{
+		"ID":          "id",
+		"PostedDate":  "posted_date",
+		"AccountID":   "account_id",
+		"Amount":      "amount",
+		"Description": "description",
+		"Beneficiary": "beneficiary",
+		"BudgetLine":  "budget_line",
+		"Tag":         "tag",
+	}
+	orderStr := models.BuildOrderString(sortKeys, columnMap)
+	txs, _, err := models.GetPage[models.Transaction](a.service.DB.Preload("Account"), start, count, orderStr, nil)
+	return txs, err
 }
 func (a *App) AddTransaction(postedDate models.Date, accountID string, amount models.Money, description, tag, beneficiary, budgetLine, rawHint string) error {
-	return a.service.AddTransaction(postedDate, accountID, amount, description, tag, beneficiary, budgetLine, rawHint)
+	return models.Create(a.service.DB, &models.Transaction{
+		PostedDate:  postedDate,
+		AccountID:   accountID,
+		Amount:      amount,
+		Description: description,
+		Tag:         tag,
+		Beneficiary: beneficiary,
+		BudgetLine:  budgetLine,
+		RawHint:     rawHint,
+	})
 }
 func (a *App) UpdateTransaction(id uint, postedDate models.Date, accountID string, amount models.Money, description, tag, beneficiary, budgetLine, rawHint string) error {
-	return a.service.UpdateTransaction(id, postedDate, accountID, amount, description, tag, beneficiary, budgetLine, rawHint)
+	return a.service.DB.Model(&models.Transaction{ID: id}).Updates(map[string]interface{}{
+		"posted_date": postedDate,
+		"account_id":  accountID,
+		"amount":      amount,
+		"description": description,
+		"tag":         tag,
+		"beneficiary": beneficiary,
+		"budget_line": budgetLine,
+		"raw_hint":    rawHint,
+	}).Error
 }
 func (a *App) DeleteTransaction(id uint) error {
-	return a.service.DeleteTransaction(id)
+	return models.Delete(a.service.DB, &models.Transaction{ID: id})
 }
 
 // --- Import ---

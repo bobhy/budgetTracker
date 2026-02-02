@@ -26,7 +26,7 @@
 
     const config: DataTableConfig = {
         name: "accounts_grid",
-        keyColumn: "ID",
+        keyColumn: "Name",
         title: "Accounts",
         maxVisibleRows: 20,
         isFilterable: true,

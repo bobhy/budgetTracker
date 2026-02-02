@@ -55,6 +55,9 @@ func (a *App) DeleteBeneficiary(name string) error {
 func (a *App) GetAccounts() ([]models.Account, error) {
 	return a.service.GetAccounts()
 }
+func (a *App) GetAccountsPaginated(start, count int, sortKeys []models.SortOption) ([]models.Account, error) {
+	return a.service.GetAccountsPaginated(start, count, sortKeys)
+}
 func (a *App) AddAccount(name, description, beneficiaryID string) error {
 	return a.service.AddAccount(name, description, beneficiaryID)
 }

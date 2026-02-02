@@ -113,6 +113,39 @@ func (s *Service) GetAccounts() ([]Account, error) {
 	return GetAll[Account](s.DB)
 }
 
+func (s *Service) GetAccountsPaginated(start, count int, sortKeys []SortOption) ([]Account, error) {
+	var orderParts []string
+	if len(sortKeys) > 0 {
+		for _, sk := range sortKeys {
+			if sk.Key != "" && sk.Key != "none" {
+				column := ""
+				switch sk.Key {
+				case "ID":
+					column = "id"
+				case "Name":
+					column = "name"
+				case "Description":
+					column = "description"
+				case "BeneficiaryID":
+					column = "beneficiary_id"
+				}
+
+				if column != "" {
+					direction := "asc"
+					if sk.Direction == "desc" {
+						direction = "desc"
+					}
+					orderParts = append(orderParts, column+" "+direction)
+				}
+			}
+		}
+	}
+	orderStr := strings.Join(orderParts, ", ")
+
+	txs, _, err := GetPage[Account](s.DB, start, count, orderStr, nil)
+	return txs, err
+}
+
 func (s *Service) AddAccount(name, description, beneficiaryID string) error {
 	return Create(s.DB, &Account{
 		Name:          name,

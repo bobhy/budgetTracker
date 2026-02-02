@@ -45,7 +45,7 @@
                 justify: "left",
                 wrappable: "word",
                 maxLines: 3,
-                maxWidth: 500,
+                maxChars: 40,
             },
             {
                 name: "BeneficiaryID",

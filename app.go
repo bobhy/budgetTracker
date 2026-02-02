@@ -51,6 +51,7 @@ func (a *App) DeleteBeneficiary(name string) error {
 }
 
 // --- Accounts ---
+// Dummy comment to trigger regeneration
 
 func (a *App) GetAccounts() ([]models.Account, error) {
 	return a.service.GetAccounts()

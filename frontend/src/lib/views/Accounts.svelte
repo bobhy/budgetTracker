@@ -8,12 +8,12 @@
         RowEditResult,
     } from "datatable";
     import {
+        GetAccountsPaginated,
         GetAccounts,
         AddAccount,
         UpdateAccount,
         DeleteAccount,
         GetBeneficiaries,
-        GetAccountsPaginated,
     } from "$wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
 

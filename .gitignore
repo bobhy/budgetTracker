@@ -104,3 +104,6 @@ temp/
 # frontend/pnpm-lock.yaml
 !/.agent/
 !/.agent/rules/implementation_notes.md
+
+playwright-report/
+test-results/

@@ -1,0 +1,2 @@
+database = "/tmp/budgetTracker_test.db"
+importFolder = "/tmp/budgetTracker_test/imports"

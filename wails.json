@@ -9,5 +9,11 @@
   "author": {
     "name": "Bob Hyman",
     "email": "bob.hyman@gmail.com"
+  },
+  "watcher": {
+    "ignore": [
+      "test-results",
+      "playwright-report"
+    ]
   }
 }

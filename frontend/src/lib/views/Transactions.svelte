@@ -16,7 +16,7 @@
 
     const config: DataTableConfig = {
         name: "transactions_grid",
-        keyColumn: "ID",
+        keyColumn: "id",
         title: "Transactions",
         maxVisibleRows: 20,
         isFilterable: true,
@@ -24,26 +24,26 @@
         isEditable: true,
         columns: [
             {
-                name: "PostedDate",
+                name: "posted_date",
                 title: "Date",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "AccountID",
+                name: "account_id",
                 title: "Account",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "Amount",
+                name: "amount",
                 title: "Amount",
                 isSortable: true,
                 justify: "right",
                 formatter: (v) => (v / 100).toFixed(2),
             },
             {
-                name: "Description",
+                name: "description",
                 title: "Description",
                 isSortable: true,
                 wrappable: "word",
@@ -51,13 +51,13 @@
                 maxChars: 50,
             },
             {
-                name: "Beneficiary",
+                name: "beneficiary",
                 title: "Beneficiary",
                 isSortable: true,
                 justify: "center",
             },
-            { name: "BudgetLine", title: "Budget Line", isSortable: true },
-            { name: "Tag", title: "Tag", isSortable: true },
+            { name: "budget_line", title: "Budget Line", isSortable: true },
+            { name: "tag", title: "Tag", isSortable: true },
         ],
     };
 
@@ -81,29 +81,29 @@
         try {
             if (action === "update") {
                 await UpdateTransaction(
-                    row.ID,
-                    row.PostedDate,
-                    row.AccountID,
-                    row.Amount,
-                    row.Description,
-                    row.Tag,
-                    row.Beneficiary,
-                    row.BudgetLine,
-                    row.RawHint || "",
+                    row.id,
+                    row.posted_date,
+                    row.account_id,
+                    row.amount,
+                    row.description,
+                    row.tag,
+                    row.beneficiary,
+                    row.budget_line,
+                    row.raw_hint || "",
                 );
             } else if (action === "create") {
                 await AddTransaction(
-                    row.PostedDate,
-                    row.AccountID,
-                    row.Amount,
-                    row.Description,
-                    row.Tag,
-                    row.Beneficiary,
-                    row.BudgetLine,
-                    row.RawHint || "",
+                    row.posted_date,
+                    row.account_id,
+                    row.amount,
+                    row.description,
+                    row.tag,
+                    row.beneficiary,
+                    row.budget_line,
+                    row.raw_hint || "",
                 );
             } else if (action === "delete") {
-                await DeleteTransaction(row.ID);
+                await DeleteTransaction(row.id);
             }
             return true;
         } catch (e) {

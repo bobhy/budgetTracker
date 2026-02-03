@@ -59,13 +59,7 @@ func (a *App) GetAccounts() ([]models.Account, error) {
 	return models.GetAll[models.Account](a.service.DB)
 }
 func (a *App) GetAccountsPaginated(start, count int, sortKeys []models.SortOption) ([]models.Account, error) {
-	columnMap := map[string]string{
-		"ID":            "id",
-		"Name":          "name",
-		"Description":   "description",
-		"BeneficiaryID": "beneficiary_id",
-	}
-	orderStr := models.BuildOrderString(sortKeys, columnMap)
+	orderStr := models.BuildOrderString(sortKeys)
 	txs, _, err := models.GetPage[models.Account](a.service.DB, start, count, orderStr, nil)
 	return txs, err
 }
@@ -135,17 +129,7 @@ func (a *App) GetTransactions() ([]models.Transaction, error) {
 }
 
 func (a *App) GetTransactionsPaginated(start, count int, sortKeys []models.SortOption) ([]models.Transaction, error) {
-	columnMap := map[string]string{
-		"ID":          "id",
-		"PostedDate":  "posted_date",
-		"AccountID":   "account_id",
-		"Amount":      "amount",
-		"Description": "description",
-		"Beneficiary": "beneficiary",
-		"BudgetLine":  "budget_line",
-		"Tag":         "tag",
-	}
-	orderStr := models.BuildOrderString(sortKeys, columnMap)
+	orderStr := models.BuildOrderString(sortKeys)
 	txs, _, err := models.GetPage[models.Transaction](a.service.DB.Preload("Account"), start, count, orderStr, nil)
 	return txs, err
 }

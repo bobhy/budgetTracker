@@ -67,8 +67,7 @@ func GetPage[T any](db *gorm.DB, skip, count int, order string, query interface{
 }
 
 // BuildOrderString converts slice of SortOption to a GORM order string.
-// columnMap provides optional mapping from frontend keys to database column names.
-func BuildOrderString(sortKeys []SortOption, columnMap map[string]string) string {
+func BuildOrderString(sortKeys []SortOption) string {
 	var parts []string
 	for _, sk := range sortKeys {
 		if sk.Key == "" || sk.Key == "none" {
@@ -76,14 +75,6 @@ func BuildOrderString(sortKeys []SortOption, columnMap map[string]string) string
 		}
 
 		column := sk.Key
-		if columnMap != nil {
-			if mapped, ok := columnMap[sk.Key]; ok {
-				column = mapped
-			}
-		}
-
-		// Map common camelCase to snake_case if not in map?
-		// For now we rely on the map or exact matches.
 
 		direction := "asc"
 		if sk.Direction == "desc" {

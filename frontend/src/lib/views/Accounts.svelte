@@ -21,12 +21,12 @@
 
     onMount(async () => {
         const fetched = await GetBeneficiaries();
-        beneficiaries = fetched.map((b) => b.Name);
+        beneficiaries = fetched.map((b) => b.name);
     });
 
     const config: DataTableConfig = {
         name: "accounts_grid",
-        keyColumn: "Name",
+        keyColumn: "name",
         title: "Accounts",
         maxVisibleRows: 20,
         isFilterable: true,
@@ -34,13 +34,13 @@
         isEditable: true,
         columns: [
             {
-                name: "Name",
+                name: "name",
                 title: "Name",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "Description",
+                name: "description",
                 isSortable: true,
                 justify: "left",
                 wrappable: "word",
@@ -48,7 +48,7 @@
                 maxChars: 40,
             },
             {
-                name: "BeneficiaryID",
+                name: "beneficiary_id",
                 title: "Beneficiary",
                 isSortable: true,
                 justify: "center",
@@ -77,15 +77,15 @@
         try {
             if (action === "update") {
                 await UpdateAccount(
-                    row.Name,
-                    row.NewName || row.Name,
-                    row.Description,
-                    row.BeneficiaryID,
+                    row.name,
+                    row.new_name || row.name,
+                    row.description,
+                    row.beneficiary_id,
                 );
             } else if (action === "create") {
-                await AddAccount(row.Name, row.Description, row.BeneficiaryID);
+                await AddAccount(row.name, row.description, row.beneficiary_id);
             } else if (action === "delete") {
-                await DeleteAccount(row.Name);
+                await DeleteAccount(row.name);
             }
             return true;
         } catch (e) {

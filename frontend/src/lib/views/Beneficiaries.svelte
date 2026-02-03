@@ -6,13 +6,8 @@
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
     import { Trash2, Pencil, Plus } from "@lucide/svelte";
-    import {
-        GetBeneficiaries,
-        AddBeneficiary,
-        UpdateBeneficiary,
-        DeleteBeneficiary,
-    } from "../../../wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
+    import * as Service from "../../../wailsjs/go/models/Service";
 
     let beneficiaries: models.Beneficiary[] = $state([]);
     let isDialogOpen = $state(false);
@@ -21,7 +16,7 @@
     let originalName = $state(""); // For updates
 
     async function load() {
-        beneficiaries = (await GetBeneficiaries()) || [];
+        beneficiaries = (await Service.GetBeneficiaries()) || [];
     }
 
     onMount(load);
@@ -42,9 +37,9 @@
     async function save() {
         try {
             if (isEditing) {
-                await UpdateBeneficiary(originalName, currentName);
+                await Service.UpdateBeneficiary(originalName, currentName);
             } else {
-                await AddBeneficiary(currentName);
+                await Service.AddBeneficiary(currentName);
             }
             isDialogOpen = false;
             load();
@@ -57,7 +52,7 @@
     async function remove(name: string) {
         if (!confirm(`Delete beneficiary ${name}?`)) return;
         try {
-            await DeleteBeneficiary(name);
+            await Service.DeleteBeneficiary(name);
             load();
         } catch (e) {
             console.error(e);

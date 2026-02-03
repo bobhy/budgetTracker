@@ -7,21 +7,14 @@
         RowAction,
         RowEditResult,
     } from "datatable";
-    import {
-        GetAccountsPaginated,
-        GetAccounts,
-        AddAccount,
-        UpdateAccount,
-        DeleteAccount,
-        GetBeneficiaries,
-    } from "$wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
+    import * as Service from "$wailsjs/go/models/Service";
 
     let beneficiaries = $state<string[]>([]);
 
     onMount(async () => {
-        const fetched = await GetBeneficiaries();
-        beneficiaries = fetched.map((b) => b.name);
+        const fetched = await Service.GetBeneficiaries();
+        beneficiaries = fetched.map((b: any) => b.name);
     });
 
     const config: DataTableConfig = {
@@ -67,7 +60,11 @@
             (k) =>
                 ({ key: k.key, direction: k.direction }) as models.SortOption,
         );
-        return await GetAccountsPaginated(startRow, numRows, goSortKeys);
+        return await Service.GetAccountsPaginated(
+            startRow,
+            numRows,
+            goSortKeys,
+        );
     };
 
     const handleRowEdit = async (
@@ -76,16 +73,20 @@
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await UpdateAccount(
+                await Service.UpdateAccount(
                     row.name,
                     row.new_name || row.name,
                     row.description,
                     row.beneficiary_id,
                 );
             } else if (action === "create") {
-                await AddAccount(row.name, row.description, row.beneficiary_id);
+                await Service.AddAccount(
+                    row.name,
+                    row.description,
+                    row.beneficiary_id,
+                );
             } else if (action === "delete") {
-                await DeleteAccount(row.name);
+                await Service.DeleteAccount(row.name);
             }
             return true;
         } catch (e) {

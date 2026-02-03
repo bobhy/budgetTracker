@@ -44,6 +44,7 @@ func main() {
 		OnStartup: app.startup,
 		Bind: []interface{}{
 			app,
+			service,
 		},
 		Linux: &linux.Options{
 			Icon: icon,

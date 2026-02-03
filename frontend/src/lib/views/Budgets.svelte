@@ -6,14 +6,8 @@
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
     import { Trash2, Pencil, Plus } from "@lucide/svelte";
-    import {
-        GetBudgets,
-        AddBudget,
-        UpdateBudget,
-        DeleteBudget,
-        GetBeneficiaries,
-    } from "../../../wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
+    import * as Service from "$wailsjs/go/models/Service";
 
     let budgets: models.Budget[] = $state([]);
     let beneficiaries: models.Beneficiary[] = $state([]);
@@ -30,8 +24,8 @@
 
     async function load() {
         const [bds, bens] = await Promise.all([
-            GetBudgets(),
-            GetBeneficiaries(),
+            Service.GetBudgets(),
+            Service.GetBeneficiaries(),
         ]);
         budgets = bds || [];
         beneficiaries = bens || [];
@@ -65,7 +59,7 @@
             const amount = Number(currentAmount);
             const interval = Number(currentInterval);
             if (isEditing) {
-                await UpdateBudget(
+                await Service.UpdateBudget(
                     originalName,
                     currentName,
                     currentDesc,
@@ -74,7 +68,7 @@
                     interval,
                 );
             } else {
-                await AddBudget(
+                await Service.AddBudget(
                     currentName,
                     currentDesc,
                     currentBenID,
@@ -93,7 +87,7 @@
     async function remove(name: string) {
         if (!confirm(`Delete budget ${name}?`)) return;
         try {
-            await DeleteBudget(name);
+            await Service.DeleteBudget(name);
             load();
         } catch (e) {
             console.error(e);

@@ -225,6 +225,106 @@ This template provides a solid foundation that's easy to extend:
 - Tailwind CSS purges unused styles automatically
 - shadcn-svelte components are lightweight and performant
 
+## Testing
+
+The budgetTracker project includes comprehensive test coverage for both backend and frontend code.
+
+### Backend Tests (Go)
+
+The backend uses Go's built-in testing framework. Tests are located in files ending with `_test.go`.
+
+#### Run All Backend Tests
+
+```bash
+go test ./...
+```
+
+#### Run Tests for a Specific Package
+
+```bash
+# Test configuration package
+go test ./config
+
+# Test models package
+go test ./models
+```
+
+#### Run Tests with Verbose Output
+
+```bash
+go test -v ./...
+```
+
+#### Run Tests with Coverage
+
+```bash
+go test -cover ./...
+```
+
+**Available Backend Tests:**
+- `config/config_test.go` - Tests for configuration management, environment variables, and command-line flags
+- `models/generics_test.go` - Tests for GORM generic CRUD operations and pagination
+
+### Frontend Tests
+
+The frontend has two types of tests: unit tests (Vitest) and end-to-end tests (Playwright). Frontend tests are located in the `frontend/` directory.
+
+#### Unit Tests (Vitest)
+
+Unit tests verify individual component logic and utilities. They run in a JSDOM environment.
+
+**Run All Unit Tests:**
+
+```bash
+cd frontend
+npx vitest run
+```
+
+**Run Tests in Watch Mode (for development):**
+
+> **Note:** In the fish shell, watch mode may hang. Use the `run` command above or switch to bash.
+
+```bash
+cd frontend
+npx vitest
+```
+
+#### End-to-End Tests (Playwright)
+
+Playwright tests verify the DataTable component's behavior in a real browser environment.
+
+**Run All Playwright Tests:**
+
+```bash
+cd /home/bobhy/worktrees/dataTable
+npx playwright test --reporter=list
+```
+
+### Running All Tests
+
+To verify the entire project before committing changes:
+
+```bash
+# 1. Run backend tests
+go test ./...
+
+# 2. Run frontend unit tests
+cd frontend
+npx vitest run
+
+# 3. Run frontend E2E tests (optional, in separate workspace)
+cd /home/bobhy/worktrees/dataTable
+npx playwright test --reporter=list
+```
+
+### Test Best Practices
+
+- **Before Submitting PRs:** Always run both backend and frontend tests to ensure no regressions
+- **Backend Tests:** Use table-driven tests for comprehensive coverage
+- **Frontend Unit Tests:** Keep tests isolated and use JSDOM for fast execution
+- **Playwright Tests:** Use for critical user journeys and complex interactions
+- **CI/CD:** Consider running tests automatically on push/PR
+
 ## Browser Compatibility
 
 This template supports modern browsers with:

@@ -85,5 +85,5 @@ func ProcessRaw(db *gorm.DB, accountID string, transactions []ParsedTransaction)
 }
 
 func generateKey(date models.Date, amount models.Money, desc string) string {
-	return string(date) + "|" + string(amount) + "|" + desc
+	return fmt.Sprintf("%s|%d|%s", date, amount, desc)
 }

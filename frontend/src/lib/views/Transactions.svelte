@@ -6,13 +6,8 @@
         RowAction,
         RowEditResult,
     } from "datatable";
-    import {
-        GetTransactionsPaginated,
-        AddTransaction,
-        UpdateTransaction,
-        DeleteTransaction,
-    } from "$wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
+    import * as Service from "$wailsjs/go/models/Service";
 
     const config: DataTableConfig = {
         name: "transactions_grid",
@@ -71,7 +66,11 @@
             (k) =>
                 ({ key: k.key, direction: k.direction }) as models.SortOption,
         );
-        return await GetTransactionsPaginated(startRow, numRows, goSortKeys);
+        return await Service.GetTransactionsPaginated(
+            startRow,
+            numRows,
+            goSortKeys,
+        );
     };
 
     const handleRowEdit = async (
@@ -80,7 +79,7 @@
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await UpdateTransaction(
+                await Service.UpdateTransaction(
                     row.id,
                     row.posted_date,
                     row.account_id,
@@ -92,7 +91,7 @@
                     row.raw_hint || "",
                 );
             } else if (action === "create") {
-                await AddTransaction(
+                await Service.AddTransaction(
                     row.posted_date,
                     row.account_id,
                     row.amount,
@@ -103,7 +102,7 @@
                     row.raw_hint || "",
                 );
             } else if (action === "delete") {
-                await DeleteTransaction(row.id);
+                await Service.DeleteTransaction(row.id);
             }
             return true;
         } catch (e) {

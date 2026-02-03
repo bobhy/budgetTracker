@@ -54,12 +54,8 @@ export const DEFAULT_TEST_DATA: TestData = {
 export async function seedTestDatabase(data: TestData = DEFAULT_TEST_DATA): Promise<void> {
     const dbPath = '/tmp/budgetTracker_test.db';
 
-    // Remove existing test database
-    try {
-        await fs.unlink(dbPath);
-    } catch (err) {
-        // Ignore if file doesn't exist
-    }
+    // Ensure we start with a clean state
+    await clearTestDatabase();
 
     // Create SQL to seed database
     const sql: string[] = [];
@@ -104,10 +100,25 @@ export async function seedTestDatabase(data: TestData = DEFAULT_TEST_DATA): Prom
  */
 export async function clearTestDatabase(): Promise<void> {
     const dbPath = '/tmp/budgetTracker_test.db';
+
     try {
-        await fs.unlink(dbPath);
-        console.log('Test database cleared');
+        // Clear all tables
+        // Order matters due to foreign keys if they are enabled
+        const sql = `
+            PRAGMA foreign_keys = OFF;
+            DELETE FROM transactions;
+            DELETE FROM budgets;
+            DELETE FROM accounts;
+            DELETE FROM beneficiaries;
+            DELETE FROM raw_transactions;
+            DELETE FROM sqlite_sequence; -- Reset autoincrement counters
+            PRAGMA foreign_keys = ON;
+        `;
+
+        await execAsync(`sqlite3 ${dbPath} "${sql}"`);
+        console.log('Test database cleared via SQL');
     } catch (err) {
-        // Ignore if file doesn't exist
+        console.error('Error clearing database:', err);
+        // Fallback or ignore if DB doesn't exist yet (first run)
     }
 }

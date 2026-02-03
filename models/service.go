@@ -58,19 +58,19 @@ func (s *Service) seed() error {
 	// Seed Accounts
 	accounts := []Account{
 		{
-			Name:          "CapitalOne",
-			Description:   "Capital One rewards Credit Account",
-			BeneficiaryID: "Us",
+			Name:        "CapitalOne",
+			Description: "Capital One rewards Credit Account",
+			Beneficiary: "Us",
 		},
 		{
-			Name:          "WfChecking",
-			Description:   "Wells Fargo checking",
-			BeneficiaryID: "Us",
+			Name:        "WfChecking",
+			Description: "Wells Fargo checking",
+			Beneficiary: "Us",
 		},
 		{
-			Name:          "WfVisa",
-			Description:   "Wells Fargo Visa",
-			BeneficiaryID: "Us",
+			Name:        "WfVisa",
+			Description: "Wells Fargo Visa",
+			Beneficiary: "Us",
 		},
 	}
 	for _, a := range accounts {
@@ -86,6 +86,12 @@ func (s *Service) seed() error {
 
 func (s *Service) GetBeneficiaries() ([]Beneficiary, error) {
 	return GetAll[Beneficiary](s.DB)
+}
+
+func (s *Service) GetBeneficiariesPaginated(start, count int, sortKeys []SortOption) ([]Beneficiary, error) {
+	orderStr := BuildOrderString(sortKeys)
+	beneficiaries, _, err := GetPage[Beneficiary](s.DB, start, count, orderStr, nil)
+	return beneficiaries, err
 }
 
 func (s *Service) AddBeneficiary(name string) error {
@@ -115,25 +121,25 @@ func (s *Service) GetAccountsPaginated(start, count int, sortKeys []SortOption) 
 	return accounts, err
 }
 
-func (s *Service) AddAccount(name, description, beneficiaryID string) error {
+func (s *Service) AddAccount(name, description, beneficiary string) error {
 	return Create(s.DB, &Account{
-		Name:          name,
-		Description:   description,
-		BeneficiaryID: beneficiaryID,
+		Name:        name,
+		Description: description,
+		Beneficiary: beneficiary,
 	})
 }
 
-func (s *Service) UpdateAccount(oldName, newName, description, beneficiaryID string) error {
+func (s *Service) UpdateAccount(oldName, newName, description, beneficiary string) error {
 	if oldName != newName {
 		return s.DB.Model(&Account{Name: oldName}).Updates(Account{
-			Name:          newName,
-			Description:   description,
-			BeneficiaryID: beneficiaryID,
+			Name:        newName,
+			Description: description,
+			Beneficiary: beneficiary,
 		}).Error
 	}
 	return s.DB.Model(&Account{Name: oldName}).Updates(Account{
-		Description:   description,
-		BeneficiaryID: beneficiaryID,
+		Description: description,
+		Beneficiary: beneficiary,
 	}).Error
 }
 
@@ -147,29 +153,29 @@ func (s *Service) GetBudgets() ([]Budget, error) {
 	return GetAll[Budget](s.DB)
 }
 
-func (s *Service) AddBudget(name, description, beneficiaryID string, amount Money, intervalMonths int) error {
+func (s *Service) AddBudget(name, description, beneficiary string, amount Money, intervalMonths int) error {
 	return Create(s.DB, &Budget{
 		Name:           name,
 		Description:    description,
-		BeneficiaryID:  beneficiaryID,
+		Beneficiary:    beneficiary,
 		Amount:         amount,
 		IntervalMonths: intervalMonths,
 	})
 }
 
-func (s *Service) UpdateBudget(oldName, newName, description, beneficiaryID string, amount Money, interval int) error {
+func (s *Service) UpdateBudget(oldName, newName, description, beneficiary string, amount Money, interval int) error {
 	if oldName != newName {
 		return s.DB.Model(&Budget{Name: oldName}).Updates(Budget{
 			Name:           newName,
 			Description:    description,
-			BeneficiaryID:  beneficiaryID,
+			Beneficiary:    beneficiary,
 			Amount:         amount,
 			IntervalMonths: interval,
 		}).Error
 	}
 	return s.DB.Model(&Budget{Name: oldName}).Updates(Budget{
 		Description:    description,
-		BeneficiaryID:  beneficiaryID,
+		Beneficiary:    beneficiary,
 		Amount:         amount,
 		IntervalMonths: interval,
 	}).Error

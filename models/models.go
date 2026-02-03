@@ -19,23 +19,45 @@ type Beneficiary struct {
 	Name string `gorm:"primaryKey" json:"name"`
 
 	// Relationships
-	Accounts []Account `gorm:"foreignKey:BeneficiaryID" json:"accounts,omitempty"`
-	Budgets  []Budget  `gorm:"foreignKey:BeneficiaryID" json:"budgets,omitempty"`
+	Accounts []Account `gorm:"foreignKey:Beneficiary;references:Name" json:"accounts,omitempty"`
+	Budgets  []Budget  `gorm:"foreignKey:Beneficiary;references:Name" json:"budgets,omitempty"`
 }
 
 type Account struct {
-	Name          string `gorm:"primaryKey" json:"name"`
-	Description   string `json:"description"`
-	BeneficiaryID string `json:"beneficiary_id"`
+	Name        string `gorm:"primaryKey" json:"name"`
+	Description string `json:"description"`
+	Beneficiary string `json:"beneficiary"`
 
 	// Relationships
 	Transactions []Transaction `gorm:"foreignKey:AccountID" json:"transactions,omitempty"`
 }
 
+// Budget represents a planned expenditure over time
+// It is possible for each beneficiary to have a budget
+// for the same category of spending.
+// It's also possible there is only one budget with a given name
+// and for that budget to be assigned to *any* beneficiary.
+//
+// DB-wise, name and beneficiary should be a composite primary key
+// but that's awkward to use when assigning budgets to transactions.
+// Instead, we'll use a simple naming convention and enforce it
+// When updating the budget table.
+//
+// 1. name shall be a unique primary key.  beneficiary
+// shall not be part of the db-enforced constraint.
+// 2. if you want to add a second budget item with the same name
+// but for a different beneficiary, call it `<name>_<beneficiary>`.
+// So Bob can have his boat {"boat", "bob"},
+// Jessie can have her art {"art", "jessie"},
+// but there can be shared and personal travel accounts:
+// {"travel", "us"},
+// {"travel_bob", "bob"},
+// {"travel_jessie", "jessie"}
+// 3. don't use '_' in name except for this distinction.
 type Budget struct {
 	Name           string `gorm:"primaryKey" json:"name"`
 	Description    string `json:"description"`
-	BeneficiaryID  string `json:"beneficiary_id"`
+	Beneficiary    string `json:"beneficiary"`
 	Amount         Money  `json:"amount"`
 	IntervalMonths int    `json:"interval_months"`
 }

@@ -41,7 +41,7 @@
                 maxChars: 40,
             },
             {
-                name: "beneficiary_id",
+                name: "beneficiary",
                 title: "Beneficiary",
                 isSortable: true,
                 justify: "center",

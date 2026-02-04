@@ -77,13 +77,13 @@
                     row.name,
                     row.new_name || row.name,
                     row.description,
-                    row.beneficiary_id,
+                    row.beneficiary,
                 );
             } else if (action === "create") {
                 await Service.AddAccount(
                     row.name,
                     row.description,
-                    row.beneficiary_id,
+                    row.beneficiary,
                 );
             } else if (action === "delete") {
                 await Service.DeleteAccount(row.name);

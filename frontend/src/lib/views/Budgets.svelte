@@ -1,214 +1,113 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { Button } from "$lib/components/ui/button";
-    import * as Table from "$lib/components/ui/table";
-    import * as Dialog from "$lib/components/ui/dialog";
-    import { Input } from "$lib/components/ui/input";
-    import { Label } from "$lib/components/ui/label";
-    import { Trash2, Pencil, Plus } from "@lucide/svelte";
+    import { DataTable } from "datatable";
+    import type {
+        DataTableConfig,
+        DataSourceCallback,
+        RowAction,
+        RowEditResult,
+    } from "datatable";
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
 
-    let budgets: models.Budget[] = $state([]);
-    let beneficiaries: models.Beneficiary[] = $state([]);
+    let beneficiaries = $state<string[]>([]);
 
-    let isDialogOpen = $state(false);
-    let isEditing = $state(false);
+    onMount(async () => {
+        const fetched = await Service.GetBeneficiaries();
+        beneficiaries = fetched.map((b: any) => b.name);
+    });
 
-    let currentName = $state("");
-    let currentDesc = $state("");
-    let currentBenID = $state("");
-    let currentAmount = $state(0);
-    let currentInterval = $state(1);
-    let originalName = $state("");
+    const config: DataTableConfig = {
+        name: "budgets_grid",
+        keyColumn: "name",
+        title: "Budget Lines",
+        maxVisibleRows: 20,
+        isFilterable: true,
+        isFindable: true,
+        isEditable: true,
+        columns: [
+            {
+                name: "name",
+                title: "Name",
+                isSortable: true,
+                justify: "center",
+            },
+            {
+                name: "beneficiary",
+                title: "Beneficiary",
+                isSortable: true,
+                justify: "center",
+                enumValues: () => beneficiaries,
+            },
+            {
+                name: "amount",
+                title: "Amount",
+                isSortable: true,
+                justify: "right",
+            },
+            {
+                name: "description",
+                isSortable: true,
+                justify: "left",
+                wrappable: "word",
+                maxLines: 2,
+                maxChars: 40,
+            },
+            {
+                name: "interval_months",
+                title: "Budget Period (mos)",
+                isSortable: true,
+                justify: "center",
+            },
+        ],
+    };
 
-    async function load() {
-        const [bds, bens] = await Promise.all([
-            Service.GetBudgets(),
-            Service.GetBeneficiaries(),
-        ]);
-        budgets = bds || [];
-        beneficiaries = bens || [];
-    }
+    const dataSource: DataSourceCallback = async (
+        columnKeys,
+        startRow,
+        numRows,
+        sortKeys,
+    ) => {
+        const goSortKeys: models.SortOption[] = sortKeys.map(
+            (k) =>
+                ({ key: k.key, direction: k.direction }) as models.SortOption,
+        );
+        return await Service.GetBudgetsPaginated(startRow, numRows, goSortKeys);
+    };
 
-    onMount(load);
-
-    function openAdd() {
-        isEditing = false;
-        currentName = "";
-        currentDesc = "";
-        currentBenID = beneficiaries.length > 0 ? beneficiaries[0].name : "";
-        currentAmount = 0;
-        currentInterval = 1;
-        isDialogOpen = true;
-    }
-
-    function openEdit(b: any) {
-        isEditing = true;
-        currentName = b.name;
-        currentDesc = b.description;
-        currentBenID = b.beneficiary_id;
-        currentAmount = b.amount;
-        currentInterval = b.interval_months;
-        originalName = b.name;
-        isDialogOpen = true;
-    }
-
-    async function save() {
+    const handleRowEdit = async (
+        action: RowAction,
+        row: any,
+    ): Promise<RowEditResult> => {
         try {
-            const amount = Number(currentAmount);
-            const interval = Number(currentInterval);
-            if (isEditing) {
+            if (action === "update") {
                 await Service.UpdateBudget(
-                    originalName,
-                    currentName,
-                    currentDesc,
-                    currentBenID,
-                    amount,
-                    interval,
+                    row.name,
+                    row.new_name || row.name,
+                    row.description,
+                    row.beneficiary,
+                    row.amount,
+                    row.interval_months,
                 );
-            } else {
+            } else if (action === "create") {
                 await Service.AddBudget(
-                    currentName,
-                    currentDesc,
-                    currentBenID,
-                    amount,
-                    interval,
+                    row.name,
+                    row.description,
+                    row.beneficiary,
+                    row.amount,
+                    row.interval_months,
                 );
+            } else if (action === "delete") {
+                await Service.DeleteBudget(row.name);
             }
-            isDialogOpen = false;
-            load();
+            return true;
         } catch (e) {
-            console.error(e);
-            alert("Error saving: " + e);
+            console.error(`Budget ${action} failed:`, e);
+            return { error: String(e) };
         }
-    }
-
-    async function remove(name: string) {
-        if (!confirm(`Delete budget ${name}?`)) return;
-        try {
-            await Service.DeleteBudget(name);
-            load();
-        } catch (e) {
-            console.error(e);
-            alert("Error deleting: " + e);
-        }
-    }
+    };
 </script>
 
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold">Budgets</h2>
-        <div class="flex gap-2">
-            <Button onclick={openAdd}>
-                <Plus class="w-4 h-4 mr-2" /> Add Budget
-            </Button>
-        </div>
-    </div>
-
-    <div class="border rounded-md">
-        <Table.Root>
-            <Table.Header>
-                <Table.Row>
-                    <Table.Head>Name</Table.Head>
-                    <Table.Head>Description</Table.Head>
-                    <Table.Head>Beneficiary</Table.Head>
-                    <Table.Head>Amount (cents)</Table.Head>
-                    <Table.Head>Interval (Months)</Table.Head>
-                    <Table.Head class="text-right">Actions</Table.Head>
-                </Table.Row>
-            </Table.Header>
-            <Table.Body>
-                {#if budgets.length === 0}
-                    <Table.Row>
-                        <Table.Cell
-                            colspan={6}
-                            class="text-center h-24 text-muted-foreground"
-                        >
-                            No budgets found.
-                        </Table.Cell>
-                    </Table.Row>
-                {:else}
-                    {#each budgets as b}
-                        <Table.Row>
-                            <Table.Cell>{b.name}</Table.Cell>
-                            <Table.Cell>{b.description}</Table.Cell>
-                            <Table.Cell>{b.beneficiary_id}</Table.Cell>
-                            <Table.Cell>{b.amount}</Table.Cell>
-                            <Table.Cell>{b.interval_months}</Table.Cell>
-                            <Table.Cell class="text-right">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onclick={() => openEdit(b)}
-                                >
-                                    <Pencil class="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    class="text-destructive"
-                                    onclick={() => remove(b.name)}
-                                >
-                                    <Trash2 class="w-4 h-4" />
-                                </Button>
-                            </Table.Cell>
-                        </Table.Row>
-                    {/each}
-                {/if}
-            </Table.Body>
-        </Table.Root>
-    </div>
-
-    <Dialog.Root bind:open={isDialogOpen}>
-        <Dialog.Content>
-            <Dialog.Header>
-                <Dialog.Title>{isEditing ? "Edit" : "Add"} Budget</Dialog.Title>
-            </Dialog.Header>
-            <div class="grid gap-4 py-4">
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label class="text-right">Name</Label>
-                    <Input class="col-span-3" bind:value={currentName} />
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label class="text-right">Description</Label>
-                    <Input class="col-span-3" bind:value={currentDesc} />
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label class="text-right">Beneficiary</Label>
-                    <select
-                        class="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors"
-                        bind:value={currentBenID}
-                    >
-                        <option value="" disabled>Select Beneficiary</option>
-                        {#each beneficiaries as b}
-                            <option value={b.name}>{b.name}</option>
-                        {/each}
-                    </select>
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label class="text-right">Amount (cents)</Label>
-                    <Input
-                        type="number"
-                        class="col-span-3"
-                        bind:value={currentAmount}
-                    />
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label class="text-right">Interval (Mo)</Label>
-                    <Input
-                        type="number"
-                        class="col-span-3"
-                        bind:value={currentInterval}
-                    />
-                </div>
-            </div>
-            <Dialog.Footer>
-                <Button variant="outline" onclick={() => (isDialogOpen = false)}
-                    >Cancel</Button
-                >
-                <Button onclick={save}>Save</Button>
-            </Dialog.Footer>
-        </Dialog.Content>
-    </Dialog.Root>
+<div class="h-[calc(100vh-100px)] w-full p-4">
+    <DataTable {config} {dataSource} onRowEdit={handleRowEdit} />
 </div>

@@ -9,6 +9,7 @@
     } from "datatable";
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
+    import { parseMoney } from "$lib/money";
 
     let beneficiaries = $state<string[]>([]);
 
@@ -78,6 +79,11 @@
         oldRow: any,
     ): Promise<RowEditResult> => {
         try {
+            // Ensure numeric fields are numbers
+            if (row.Amount) row.Amount = parseMoney(row.Amount);
+            if (row.IntervalMonths)
+                row.IntervalMonths = parseInt(row.IntervalMonths);
+
             if (action === "update") {
                 await Service.UpdateBudget(oldRow, row);
             } else if (action === "create") {

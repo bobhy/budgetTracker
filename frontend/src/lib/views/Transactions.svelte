@@ -8,6 +8,7 @@
     } from "datatable";
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
+    import { parseMoney } from "$lib/money";
 
     const config: DataTableConfig = {
         name: "transactions_grid",
@@ -75,6 +76,9 @@
         oldRow: any,
     ): Promise<RowEditResult> => {
         try {
+            // Ensure numeric fields are numbers
+            if (row.Amount) row.Amount = parseMoney(row.Amount);
+
             if (action === "update") {
                 await Service.UpdateTransaction(oldRow, row);
             } else if (action === "create") {

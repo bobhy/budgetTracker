@@ -6,6 +6,7 @@
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
     import { toast } from "svelte-sonner";
+    import { parseMoney } from "$lib/money";
     import { DataTable } from "datatable";
     import type {
         DataTableConfig,
@@ -203,13 +204,10 @@
         oldRow: any,
     ): Promise<RowEditResult> => {
         try {
-            if (action === "update") {
-                // Ensure Amount is number (sometimes forms return strings)
-                // const amount = Number(row.Amount);
-                // Actually the form usually binds to the raw value, but let's be careful.
-                // Our DataTable form currently binds directly to the object values.
-                // Since our formatter is (val/100), the raw value is cents.
+            // Ensure numeric fields are numbers
+            if (row.Amount) row.Amount = parseMoney(row.Amount);
 
+            if (action === "update") {
                 await Service.UpdateRawTransaction(oldRow, row);
             } else if (action === "delete") {
                 await Service.DeleteRawTransaction(oldRow);

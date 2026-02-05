@@ -41,9 +41,6 @@
         try {
             accounts = (await Service.GetAccounts()) || [];
             accountOptions = accounts.map((a: any) => a.Name);
-            if (accounts.length > 0) {
-                selectedAccount = accounts[0].Name;
-            }
         } catch (err) {
             toast.error("Failed to load accounts: " + err);
         }

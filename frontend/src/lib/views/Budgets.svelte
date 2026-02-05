@@ -42,6 +42,7 @@
                 name: "Amount",
                 isSortable: true,
                 justify: "right",
+                formatter: (v) => (v / 100).toFixed(2),
             },
             {
                 name: "Description",
@@ -49,7 +50,7 @@
                 justify: "left",
                 wrappable: "word",
                 maxLines: 2,
-                maxChars: 40,
+                maxChars: 20,
             },
             {
                 name: "IntervalMonths",

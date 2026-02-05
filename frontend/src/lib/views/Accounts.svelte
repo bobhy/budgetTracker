@@ -37,7 +37,7 @@
                 justify: "left",
                 wrappable: "word",
                 maxLines: 3,
-                maxChars: 40,
+                maxChars: 20,
             },
             {
                 name: "Beneficiary",

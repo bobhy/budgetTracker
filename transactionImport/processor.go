@@ -59,7 +59,7 @@ func ProcessRaw(db *gorm.DB, account string, transactions []ParsedTransaction) e
 			Beneficiary: pt.Beneficiary,
 			RawHint:     pt.RawHint,
 			Action:      action,
-			// BudgetLine? Default is empty. User sets it.
+			// Budget: is imported as empty string, user must set to somethingh non-empty to load into transactions.
 		}
 
 		// Check if we already have this in Raw

@@ -50,13 +50,21 @@ func seedTable[T any](s *Service, records []T) error {
 	}
 	return nil
 }
+
+/// Placeholder user must update before a RawTransaction can be moved to Transactions table.
+
+const UNCATEGORIZED_BUDGET = ""             // user hasn't assigned any budget -- tx stays in raw table
+const PLACEHOLDER_BUDGET = "--unbudgeted--" // a budget the user can assign to complete the import but worry about budget details later
+const PLACEHOLDER_BENEFICIARY = "--none--"
+
 func (s *Service) seed() error {
 
 	// Seed Beneficiaries
 	err := seedTable(s, []Beneficiary{
+		{Name: PLACEHOLDER_BENEFICIARY},
+		{Name: "Us"},
 		{Name: "Bob"},
 		{Name: "Jessie"},
-		{Name: "Us"},
 	})
 
 	if err != nil {
@@ -88,9 +96,9 @@ func (s *Service) seed() error {
 	// Seed Budgets
 	err = seedTable(s, []Budget{
 		{
-			Name:        "--unbudgeted--",
-			Description: "Unbudgeted",
-			Beneficiary: "Us",
+			Name:        PLACEHOLDER_BUDGET,
+			Description: "Update to move raw transaction into transactions",
+			Beneficiary: PLACEHOLDER_BENEFICIARY,
 		},
 	})
 	if err != nil {
@@ -177,12 +185,12 @@ func (s *Service) DeleteBudget(budget *Budget) error {
 // --- Transactions ---
 
 func (s *Service) GetTransactions() ([]Transaction, error) {
-	return GetAll[Transaction](s.DB.Preload("Account"))
+	return GetAll[Transaction](s.DB)
 }
 
 func (s *Service) GetTransactionsPaginated(start, count int, sortKeys []SortOption) ([]Transaction, error) {
 	orderStr := BuildOrderString(sortKeys)
-	txs, _, err := GetPage[Transaction](s.DB.Preload("Account"), start, count, orderStr, nil)
+	txs, _, err := GetPage[Transaction](s.DB, start, count, orderStr, nil)
 	return txs, err
 }
 
@@ -233,12 +241,18 @@ func (s *Service) FinalizeImport() (string, error) {
 		return "", err
 	}
 
-	added := 0
-	updated := 0
+	added := 0   //new tx in tx table
+	updated := 0 // existing tx updated in tx table
+	skipped := 0 // raw tx left in raw table because uncategorized.
 
 	tx := s.DB.Begin()
 
 	for _, raw := range rawList {
+		if raw.Budget == UNCATEGORIZED_BUDGET {
+			skipped++
+			continue
+		}
+
 		switch raw.Action {
 		case "add":
 			// Create new Transaction
@@ -292,11 +306,11 @@ func (s *Service) FinalizeImport() (string, error) {
 	}
 
 	// Empty Raw
-	if err := tx.Exec("DELETE FROM raw_transactions").Error; err != nil {
+	if err := tx.Exec("DELETE FROM raw_transactions WHERE budget != ?", UNCATEGORIZED_BUDGET).Error; err != nil {
 		tx.Rollback()
 		return "", err
 	}
 
 	tx.Commit()
-	return fmt.Sprintf("Finalized: %d added, %d updated", added, updated), nil
+	return fmt.Sprintf("Finalized: %d added, %d updated, %d remain to be categorized.", added, updated, skipped), nil
 }

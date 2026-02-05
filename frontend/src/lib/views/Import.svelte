@@ -104,12 +104,7 @@
 
     async function handleFinalize() {
         if (totalRawTransactions === 0) return;
-        if (
-            !confirm(
-                "Are you sure you want to finalize imports? This will clear the staging table.",
-            )
-        )
-            return;
+
         loading = true;
         try {
             const msg = await Service.FinalizeImport();
@@ -144,7 +139,7 @@
                 isSortable: true,
                 justify: "left",
                 wrappable: "word",
-                maxChars: 30,
+                maxChars: 20,
                 maxLines: 2,
             },
             {
@@ -299,7 +294,7 @@
                         >Staging Area ({totalRawTransactions})</Card.Title
                     >
                     <Card.Description
-                        >Review and edit before finalizing.</Card.Description
+                        >Review, edit and assign budget to finalize.</Card.Description
                     >
                 </div>
                 <Button onclick={handleFinalize} disabled={loading}

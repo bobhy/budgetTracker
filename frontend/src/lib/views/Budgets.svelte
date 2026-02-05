@@ -14,7 +14,7 @@
 
     onMount(async () => {
         const fetched = await Service.GetBeneficiaries();
-        beneficiaries = fetched.map((b: any) => b.name);
+        beneficiaries = fetched.map((b: any) => b.Name);
     });
 
     const config: DataTableConfig = {

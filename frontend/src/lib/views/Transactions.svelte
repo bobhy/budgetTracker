@@ -11,7 +11,7 @@
 
     const config: DataTableConfig = {
         name: "transactions_grid",
-        keyColumn: "id",
+        keyColumn: "ID",
         title: "Transactions",
         maxVisibleRows: 20,
         isFilterable: true,
@@ -19,40 +19,36 @@
         isEditable: true,
         columns: [
             {
-                name: "posted_date",
+                name: "PostedDate",
                 title: "Date",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "account_id",
-                title: "Account",
+                name: "Account",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "amount",
-                title: "Amount",
+                name: "Amount",
                 isSortable: true,
                 justify: "right",
                 formatter: (v) => (v / 100).toFixed(2),
             },
             {
-                name: "description",
-                title: "Description",
+                name: "Description",
                 isSortable: true,
                 wrappable: "word",
                 maxLines: 3,
                 maxChars: 50,
             },
             {
-                name: "beneficiary",
-                title: "Beneficiary",
+                name: "Beneficiary",
                 isSortable: true,
                 justify: "center",
             },
-            { name: "budget_line", title: "Budget Line", isSortable: true },
-            { name: "tag", title: "Tag", isSortable: true },
+            { name: "Budget", title: "Budget Line", isSortable: true },
+            { name: "Tag", isSortable: true },
         ],
     };
 

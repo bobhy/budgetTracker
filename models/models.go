@@ -23,7 +23,7 @@ type Account struct {
 	Name           string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
 	Description    string
 	Beneficiary    string
-	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name"`
+	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name" json:"-"`
 }
 
 // Budget represents a planned expenditure over time
@@ -52,7 +52,7 @@ type Budget struct {
 	Name           string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
 	Description    string
 	Beneficiary    string
-	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name"`
+	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name" json:"-"`
 	Amount         Money
 	IntervalMonths int
 }
@@ -64,14 +64,14 @@ type Transaction struct {
 	DeletedAt      *time.Time `gorm:"index"` // Use pointer to time for soft delete, hide from json
 	PostedDate     Date
 	Account        string
-	AccountObj     *Account `gorm:"foreignKey:Account;references:Name"`
+	AccountObj     *Account `gorm:"foreignKey:Account;references:Name" json:"-"`
 	Amount         Money
 	Description    string
 	Tag            string
 	Budget         string
-	BudgetObj      *Budget `gorm:"foreignKey:Budget;references:Name"`
+	BudgetObj      *Budget `gorm:"foreignKey:Budget;references:Name" json:"-"`
 	Beneficiary    string
-	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name"` // Overrides Account default if set
+	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name" json:"-"` // Overrides Account default if set
 	RawHint        string       // Category hint from import
 }
 

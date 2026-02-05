@@ -4,7 +4,7 @@
     import type {
         DataTableConfig,
         DataSourceCallback,
-        RowAction,
+        RowEditAction,
         RowEditResult,
     } from "datatable";
     import { models } from "$wailsjs/go/models";
@@ -27,26 +27,23 @@
         isEditable: true,
         columns: [
             {
-                name: "name",
-                title: "Name",
+                name: "Name",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "beneficiary",
-                title: "Beneficiary",
+                name: "Beneficiary",
                 isSortable: true,
                 justify: "center",
                 enumValues: () => beneficiaries,
             },
             {
-                name: "amount",
-                title: "Amount",
+                name: "Amount",
                 isSortable: true,
                 justify: "right",
             },
             {
-                name: "description",
+                name: "Description",
                 isSortable: true,
                 justify: "left",
                 wrappable: "word",
@@ -54,7 +51,7 @@
                 maxChars: 40,
             },
             {
-                name: "interval_months",
+                name: "IntervalMonths",
                 title: "Budget Period (mos)",
                 isSortable: true,
                 justify: "center",
@@ -76,29 +73,17 @@
     };
 
     const handleRowEdit = async (
-        action: RowAction,
+        action: RowEditAction,
         row: any,
+        oldRow: any,
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await Service.UpdateBudget(
-                    row.name,
-                    row.new_name || row.name,
-                    row.description,
-                    row.beneficiary,
-                    row.amount,
-                    row.interval_months,
-                );
+                await Service.UpdateBudget(oldRow, row);
             } else if (action === "create") {
-                await Service.AddBudget(
-                    row.name,
-                    row.description,
-                    row.beneficiary,
-                    row.amount,
-                    row.interval_months,
-                );
+                await Service.AddBudget(row);
             } else if (action === "delete") {
-                await Service.DeleteBudget(row.name);
+                await Service.DeleteBudget(oldRow);
             }
             return true;
         } catch (e) {

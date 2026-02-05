@@ -94,19 +94,16 @@ func (s *Service) GetBeneficiariesPaginated(start, count int, sortKeys []SortOpt
 	return beneficiaries, err
 }
 
-func (s *Service) AddBeneficiary(name string) error {
-	return Create(s.DB, &Beneficiary{Name: name})
+func (s *Service) AddBeneficiary(beneficiary *Beneficiary) error {
+	return Create(s.DB, beneficiary)
 }
 
-func (s *Service) UpdateBeneficiary(oldName, newName string) error {
-	if oldName == newName {
-		return nil
-	}
-	return s.DB.Model(&Beneficiary{Name: oldName}).Update("name", newName).Error
+func (s *Service) UpdateBeneficiary(oldBeneficiary, newBeneficiary *Beneficiary) error {
+	return s.DB.Model(oldBeneficiary).Updates(newBeneficiary).Error
 }
 
-func (s *Service) DeleteBeneficiary(name string) error {
-	return Delete(s.DB, &Beneficiary{Name: name})
+func (s *Service) DeleteBeneficiary(beneficiary *Beneficiary) error {
+	return Delete(s.DB, beneficiary)
 }
 
 // --- Accounts ---
@@ -121,30 +118,16 @@ func (s *Service) GetAccountsPaginated(start, count int, sortKeys []SortOption) 
 	return accounts, err
 }
 
-func (s *Service) AddAccount(name, description, beneficiary string) error {
-	return Create(s.DB, &Account{
-		Name:        name,
-		Description: description,
-		Beneficiary: beneficiary,
-	})
+func (s *Service) AddAccount(account *Account) error {
+	return Create(s.DB, account)
 }
 
-func (s *Service) UpdateAccount(oldName, newName, description, beneficiary string) error {
-	if oldName != newName {
-		return s.DB.Model(&Account{Name: oldName}).Updates(Account{
-			Name:        newName,
-			Description: description,
-			Beneficiary: beneficiary,
-		}).Error
-	}
-	return s.DB.Model(&Account{Name: oldName}).Updates(Account{
-		Description: description,
-		Beneficiary: beneficiary,
-	}).Error
+func (s *Service) UpdateAccount(oldAccount, newAccount *Account) error {
+	return s.DB.Model(oldAccount).Updates(newAccount).Error
 }
 
-func (s *Service) DeleteAccount(name string) error {
-	return Delete(s.DB, &Account{Name: name})
+func (s *Service) DeleteAccount(account *Account) error {
+	return Delete(s.DB, account)
 }
 
 // --- Budgets ---
@@ -153,36 +136,22 @@ func (s *Service) GetBudgets() ([]Budget, error) {
 	return GetAll[Budget](s.DB)
 }
 
-func (s *Service) AddBudget(name, description, beneficiary string, amount Money, intervalMonths int) error {
-	return Create(s.DB, &Budget{
-		Name:           name,
-		Description:    description,
-		Beneficiary:    beneficiary,
-		Amount:         amount,
-		IntervalMonths: intervalMonths,
-	})
+func (s *Service) GetBudgetsPaginated(start, count int, sortKeys []SortOption) ([]Budget, error) {
+	orderStr := BuildOrderString(sortKeys)
+	budgets, _, err := GetPage[Budget](s.DB, start, count, orderStr, nil)
+	return budgets, err
 }
 
-func (s *Service) UpdateBudget(oldName, newName, description, beneficiary string, amount Money, interval int) error {
-	if oldName != newName {
-		return s.DB.Model(&Budget{Name: oldName}).Updates(Budget{
-			Name:           newName,
-			Description:    description,
-			Beneficiary:    beneficiary,
-			Amount:         amount,
-			IntervalMonths: interval,
-		}).Error
-	}
-	return s.DB.Model(&Budget{Name: oldName}).Updates(Budget{
-		Description:    description,
-		Beneficiary:    beneficiary,
-		Amount:         amount,
-		IntervalMonths: interval,
-	}).Error
+func (s *Service) AddBudget(budget *Budget) error {
+	return Create(s.DB, budget)
 }
 
-func (s *Service) DeleteBudget(name string) error {
-	return Delete(s.DB, &Budget{Name: name})
+func (s *Service) UpdateBudget(oldBudget, newBudget *Budget) error {
+	return s.DB.Model(oldBudget).Updates(newBudget).Error
+}
+
+func (s *Service) DeleteBudget(budget *Budget) error {
+	return Delete(s.DB, budget)
 }
 
 // --- Transactions ---
@@ -197,62 +166,39 @@ func (s *Service) GetTransactionsPaginated(start, count int, sortKeys []SortOpti
 	return txs, err
 }
 
-func (s *Service) AddTransaction(postedDate Date, accountID string, amount Money, description, tag, beneficiary, budgetLine, rawHint string) error {
-	return Create(s.DB, &Transaction{
-		PostedDate:  postedDate,
-		AccountID:   accountID,
-		Amount:      amount,
-		Description: description,
-		Tag:         tag,
-		Beneficiary: beneficiary,
-		BudgetLine:  budgetLine,
-		RawHint:     rawHint,
-	})
+func (s *Service) AddTransaction(transaction *Transaction) error {
+	return Create(s.DB, transaction)
 }
 
-func (s *Service) UpdateTransaction(id uint, postedDate Date, accountID string, amount Money, description, tag, beneficiary, budgetLine, rawHint string) error {
-	return s.DB.Model(&Transaction{ID: id}).Updates(map[string]interface{}{
-		"posted_date": postedDate,
-		"account_id":  accountID,
-		"amount":      amount,
-		"description": description,
-		"tag":         tag,
-		"beneficiary": beneficiary,
-		"budget_line": budgetLine,
-		"raw_hint":    rawHint,
-	}).Error
+func (s *Service) UpdateTransaction(oldTransaction, newTransaction *Transaction) error {
+	return s.DB.Model(oldTransaction).Updates(newTransaction).Error
 }
 
-func (s *Service) DeleteTransaction(id uint) error {
-	return Delete(s.DB, &Transaction{ID: id})
+func (s *Service) DeleteTransaction(transaction *Transaction) error {
+	return Delete(s.DB, transaction)
 }
 
 // --- Raw Transactions ---
 
 func (s *Service) GetRawTransactions() ([]RawTransaction, error) {
-	var raw []RawTransaction
-	err := s.DB.Order("posted_date desc").Find(&raw).Error
-	return raw, err
+	return GetAll[RawTransaction](s.DB)
+}
+func (s *Service) GetRawTransactionsPaginated(start, count int, sortKeys []SortOption) ([]RawTransaction, error) {
+	orderStr := BuildOrderString(sortKeys)
+	rawTxs, _, err := GetPage[RawTransaction](s.DB, start, count, orderStr, nil)
+	return rawTxs, err
 }
 
-func (s *Service) UpdateRawTransaction(id uint, postedDate Date, amount Money, description, beneficiary, budgetLine, rawHint string) error {
-	var raw RawTransaction
-	if err := s.DB.First(&raw, id).Error; err != nil {
-		return err
-	}
-
-	raw.PostedDate = postedDate
-	raw.Amount = amount
-	raw.Description = description
-	raw.Beneficiary = beneficiary
-	raw.BudgetLine = budgetLine
-	raw.RawHint = rawHint
-
-	return s.DB.Save(&raw).Error
+func (s *Service) AddRawTransaction(rawTransaction *RawTransaction) error {
+	return Create(s.DB, rawTransaction)
 }
 
-func (s *Service) DeleteRawTransaction(id uint) error {
-	return s.DB.Delete(&RawTransaction{}, id).Error
+func (s *Service) UpdateRawTransaction(oldRawTransaction, newRawTransaction *RawTransaction) error {
+	return s.DB.Model(oldRawTransaction).Updates(newRawTransaction).Error
+}
+
+func (s *Service) DeleteRawTransaction(rawTransaction *RawTransaction) error {
+	return Delete(s.DB, rawTransaction)
 }
 
 func (s *Service) FinalizeImport() (string, error) {
@@ -267,15 +213,16 @@ func (s *Service) FinalizeImport() (string, error) {
 	tx := s.DB.Begin()
 
 	for _, raw := range rawList {
-		if raw.Action == "add" {
+		switch raw.Action {
+		case "add":
 			// Create new Transaction
 			t := Transaction{
 				PostedDate:  raw.PostedDate,
-				AccountID:   raw.AccountID,
+				Account:     raw.Account,
 				Amount:      raw.Amount,
 				Description: raw.Description,
 				Beneficiary: raw.Beneficiary,
-				BudgetLine:  raw.BudgetLine,
+				Budget:      raw.Budget,
 				RawHint:     raw.RawHint,
 			}
 			if err := tx.Create(&t).Error; err != nil {
@@ -283,15 +230,15 @@ func (s *Service) FinalizeImport() (string, error) {
 				return "", err
 			}
 			added++
-		} else if raw.Action == "update" {
+		case "update":
 			var target Transaction
 			result := tx.Where("account_id = ? AND posted_date = ? AND amount = ? AND description = ?",
-				raw.AccountID, raw.PostedDate, raw.Amount, raw.Description).First(&target)
+				raw.Account, raw.PostedDate, raw.Amount, raw.Description).First(&target)
 
 			if result.Error == nil {
 				// Found match. Update it.
 				target.Beneficiary = raw.Beneficiary
-				target.BudgetLine = raw.BudgetLine
+				target.Budget = raw.Budget
 				target.RawHint = raw.RawHint
 				if err := tx.Save(&target).Error; err != nil {
 					tx.Rollback()
@@ -302,11 +249,11 @@ func (s *Service) FinalizeImport() (string, error) {
 				// Not found. Treat as new to avoid data loss.
 				t := Transaction{
 					PostedDate:  raw.PostedDate,
-					AccountID:   raw.AccountID,
+					Account:     raw.Account,
 					Amount:      raw.Amount,
 					Description: raw.Description,
 					Beneficiary: raw.Beneficiary,
-					BudgetLine:  raw.BudgetLine,
+					Budget:      raw.Budget,
 					RawHint:     raw.RawHint,
 				}
 				if err := tx.Create(&t).Error; err != nil {

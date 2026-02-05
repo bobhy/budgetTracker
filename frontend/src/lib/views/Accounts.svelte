@@ -4,7 +4,7 @@
     import type {
         DataTableConfig,
         DataSourceCallback,
-        RowAction,
+        RowEditAction,
         RowEditResult,
     } from "datatable";
     import { models } from "$wailsjs/go/models";
@@ -19,7 +19,7 @@
 
     const config: DataTableConfig = {
         name: "accounts_grid",
-        keyColumn: "name",
+        keyColumn: "Name",
         title: "Accounts",
         maxVisibleRows: 20,
         isFilterable: true,
@@ -27,13 +27,12 @@
         isEditable: true,
         columns: [
             {
-                name: "name",
-                title: "Name",
+                name: "Name",
                 isSortable: true,
                 justify: "center",
             },
             {
-                name: "description",
+                name: "Description",
                 isSortable: true,
                 justify: "left",
                 wrappable: "word",
@@ -41,8 +40,7 @@
                 maxChars: 40,
             },
             {
-                name: "beneficiary",
-                title: "Beneficiary",
+                name: "Beneficiary",
                 isSortable: true,
                 justify: "center",
                 enumValues: () => beneficiaries,
@@ -68,25 +66,18 @@
     };
 
     const handleRowEdit = async (
-        action: RowAction,
+        action: RowEditAction,
         row: any,
+        oldRow?: any,
+        keyColumn?: string,
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await Service.UpdateAccount(
-                    row.name,
-                    row.new_name || row.name,
-                    row.description,
-                    row.beneficiary,
-                );
+                await Service.UpdateAccount(oldRow, row);
             } else if (action === "create") {
-                await Service.AddAccount(
-                    row.name,
-                    row.description,
-                    row.beneficiary,
-                );
+                await Service.AddAccount(row);
             } else if (action === "delete") {
-                await Service.DeleteAccount(row.name);
+                await Service.DeleteAccount(oldRow);
             }
             return true;
         } catch (e) {

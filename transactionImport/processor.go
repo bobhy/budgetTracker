@@ -8,11 +8,11 @@ import (
 )
 
 // ProcessRaw imports parsed transactions into the RawTransaction table
-func ProcessRaw(db *gorm.DB, accountID string, transactions []ParsedTransaction) error {
+func ProcessRaw(db *gorm.DB, account string, transactions []ParsedTransaction) error {
 	// 1. Fetch existing Transactions for this account to determine "add" vs "update"
 	// Optimization: we could filter by date range of the new transactions
 	var existingTransactions []models.Transaction
-	if err := db.Where("account_id = ?", accountID).Find(&existingTransactions).Error; err != nil {
+	if err := db.Where("account = ?", account).Find(&existingTransactions).Error; err != nil {
 		return err
 	}
 
@@ -23,11 +23,11 @@ func ProcessRaw(db *gorm.DB, accountID string, transactions []ParsedTransaction)
 		key := generateKey(t.PostedDate, t.Amount, t.Description)
 		transactionMap[key] = true
 	}
-	fmt.Printf("[Processor] Loaded %d existing transactions for account %s\n", len(existingTransactions), accountID)
+	fmt.Printf("[Processor] Loaded %d existing transactions for account %s\n", len(existingTransactions), account)
 
 	// 2. Fetch existing RawTransactions to ensure idempotency (update instead of duplicate)
 	var existingRaw []models.RawTransaction
-	if err := db.Where("account_id = ?", accountID).Find(&existingRaw).Error; err != nil {
+	if err := db.Where("account = ?", account).Find(&existingRaw).Error; err != nil {
 		return err
 	}
 
@@ -53,7 +53,7 @@ func ProcessRaw(db *gorm.DB, accountID string, transactions []ParsedTransaction)
 		// Prepare model
 		raw := models.RawTransaction{
 			PostedDate:  pt.PostedDate,
-			AccountID:   accountID,
+			Account:     account,
 			Amount:      pt.Amount,
 			Description: pt.Description,
 			Beneficiary: pt.Beneficiary,

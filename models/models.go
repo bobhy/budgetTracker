@@ -16,20 +16,24 @@ type SortOption struct {
 }
 
 type Beneficiary struct {
-	Name string `gorm:"primaryKey" json:"name"`
+	Name string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
 
 	// Relationships
-	Accounts []Account `gorm:"foreignKey:Beneficiary;references:Name" json:"accounts,omitempty"`
-	Budgets  []Budget  `gorm:"foreignKey:Beneficiary;references:Name" json:"budgets,omitempty"`
+	Accounts        []Account        `gorm:"foreignKey:Beneficiary;references:Name"`
+	Budgets         []Budget         `gorm:"foreignKey:Beneficiary;references:Name"`
+	Transactions    []Transaction    `gorm:"foreignKey:Beneficiary;references:Name"`
+	RawTransactions []RawTransaction `gorm:"foreignKey:Beneficiary;references:Name"`
 }
 
 type Account struct {
-	Name        string `gorm:"primaryKey" json:"name"`
-	Description string `json:"description"`
-	Beneficiary string `json:"beneficiary"`
+	Name        string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
+	Description string
+	Beneficiary string
 
 	// Relationships
-	Transactions []Transaction `gorm:"foreignKey:AccountID" json:"transactions,omitempty"`
+	Budgets         []Budget         `gorm:"foreignKey:Beneficiary;references:Name"`
+	Transactions    []Transaction    `gorm:"foreignKey:Account;references:Name"`
+	RawTransactions []RawTransaction `gorm:"foreignKey:Account;references:Name"`
 }
 
 // Budget represents a planned expenditure over time
@@ -55,42 +59,45 @@ type Account struct {
 // {"travel_jessie", "jessie"}
 // 3. don't use '_' in name except for this distinction.
 type Budget struct {
-	Name           string `gorm:"primaryKey" json:"name"`
-	Description    string `json:"description"`
-	Beneficiary    string `json:"beneficiary"`
-	Amount         Money  `json:"amount"`
-	IntervalMonths int    `json:"interval_months"`
+	Name           string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
+	Description    string
+	Beneficiary    string
+	Amount         Money
+	IntervalMonths int
+
+	// Relationships
+	Transactions    []Transaction    `gorm:"foreignKey:Budget;references:Name"`
+	RawTransactions []RawTransaction `gorm:"foreignKey:Budget;references:Name"`
 }
 
 type Transaction struct {
-	ID          uint       `gorm:"primarykey" json:"id"`
+	ID          uint       `gorm:"primarykey"`
 	CreatedAt   time.Time  `json:"-"` // Hide from frontend to avoid warning/binding issues
 	UpdatedAt   time.Time  `json:"-"`
-	DeletedAt   *time.Time `gorm:"index" json:"-"` // Use pointer to time for soft delete, hide from json
-	PostedDate  Date       `json:"posted_date"`
-	AccountID   string     `json:"account_id"`
-	Account     Account    `gorm:"foreignKey:AccountID" json:"account,omitempty"`
-	Amount      Money      `json:"amount"`
-	Description string     `json:"description"`
-	Tag         string     `json:"tag"`
-	BudgetLine  string     `json:"budget_line"` // Replaces BudgetLineID
-	Beneficiary string     `json:"beneficiary"` // Overrides Account default if set
-	RawHint     string     `json:"raw_hint"`    // Category hint from import
+	DeletedAt   *time.Time `gorm:"index"` // Use pointer to time for soft delete, hide from json
+	PostedDate  Date
+	Account     string `gorm:"foreignKey:Account"`
+	Amount      Money
+	Description string
+	Tag         string
+	Budget      string
+	Beneficiary string // Overrides Account default if set
+	RawHint     string // Category hint from import
 }
 
 // RawTransaction is used for importing transactions before they are fully processed and linked
 type RawTransaction struct {
-	ID          uint       `gorm:"primarykey" json:"id"`
+	ID          uint       `gorm:"primarykey"`
 	CreatedAt   time.Time  `json:"-"`
 	UpdatedAt   time.Time  `json:"-"`
-	DeletedAt   *time.Time `gorm:"index" json:"-"`
-	PostedDate  Date       `json:"posted_date"`
-	AccountID   string     `json:"account_id"`
-	Amount      Money      `json:"amount"`
-	Description string     `json:"description"`
-	Tag         string     `json:"tag"`
-	BudgetLine  string     `json:"budget_line"`
-	Action      string     `json:"action"` // "add" or "update"
-	Beneficiary string     `json:"beneficiary"`
-	RawHint     string     `json:"raw_hint"`
+	DeletedAt   *time.Time `gorm:"index"`
+	PostedDate  Date
+	Account     string `gorm:"foreignKey:Account"`
+	Amount      Money
+	Description string
+	Tag         string
+	Budget      string `gorm:"foreignKey:Budget"`
+	Action      string // "add" or "update"
+	Beneficiary string `gorm:"foreignKey:Beneficiary"`
+	RawHint     string
 }

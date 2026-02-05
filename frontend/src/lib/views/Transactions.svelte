@@ -3,7 +3,7 @@
     import type {
         DataTableConfig,
         DataSourceCallback,
-        RowAction,
+        RowEditAction,
         RowEditResult,
     } from "datatable";
     import { models } from "$wailsjs/go/models";
@@ -74,35 +74,17 @@
     };
 
     const handleRowEdit = async (
-        action: RowAction,
+        action: RowEditAction,
         row: any,
+        oldRow: any,
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await Service.UpdateTransaction(
-                    row.id,
-                    row.posted_date,
-                    row.account_id,
-                    row.amount,
-                    row.description,
-                    row.tag,
-                    row.beneficiary,
-                    row.budget_line,
-                    row.raw_hint || "",
-                );
+                await Service.UpdateTransaction(oldRow, row);
             } else if (action === "create") {
-                await Service.AddTransaction(
-                    row.posted_date,
-                    row.account_id,
-                    row.amount,
-                    row.description,
-                    row.tag,
-                    row.beneficiary,
-                    row.budget_line,
-                    row.raw_hint || "",
-                );
+                await Service.AddTransaction(row);
             } else if (action === "delete") {
-                await Service.DeleteTransaction(row.id);
+                await Service.DeleteTransaction(oldRow);
             }
             return true;
         } catch (e) {

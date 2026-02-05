@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { DataTable } from "datatable";
     import type {
         DataTableConfig,
         DataSourceCallback,
-        RowAction,
+        RowEditAction,
         RowEditResult,
     } from "datatable";
     import { models } from "$wailsjs/go/models";
@@ -20,8 +19,7 @@
         isEditable: true,
         columns: [
             {
-                name: "name",
-                title: "Name",
+                name: "Name",
                 isSortable: true,
                 justify: "center",
             },
@@ -46,19 +44,17 @@
     };
 
     const handleRowEdit = async (
-        action: RowAction,
+        action: RowEditAction,
         row: any,
+        oldRow: any,
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await Service.UpdateBeneficiary(
-                    row.name,
-                    row.new_name || row.name,
-                );
+                await Service.UpdateBeneficiary(oldRow, row);
             } else if (action === "create") {
-                await Service.AddBeneficiary(row.name);
+                await Service.AddBeneficiary(row);
             } else if (action === "delete") {
-                await Service.DeleteBeneficiary(row.name);
+                await Service.DeleteBeneficiary(oldRow);
             }
             return true;
         } catch (e) {

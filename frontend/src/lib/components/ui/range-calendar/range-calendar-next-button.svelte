@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { RangeCalendar as RangeCalendarPrimitive } from "bits-ui";
 	import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
-	import { buttonVariants, type ButtonVariant } from "$lib/components/ui/button/index.ts";
+	import {
+		buttonVariants,
+		type ButtonVariant,
+	} from "$lib/components/ui/button/index.ts";
 	import { cn } from "$lib/utils.ts";
 
 	let {
@@ -24,8 +27,8 @@
 	class={cn(
 		buttonVariants({ variant }),
 		"size-(--cell-size) select-none bg-transparent p-0 disabled:opacity-50 rtl:rotate-180",
-		className
+		className,
 	)}
-	children={children || Fallback}
+	children={(children || Fallback) as any}
 	{...restProps}
 />

@@ -42,21 +42,29 @@ func (s *Service) Clean() error {
 	return s.seed()
 }
 
-func (s *Service) seed() error {
-	// Seed Beneficiaries
-	beneficiaries := []Beneficiary{
-		{Name: "Bob"},
-		{Name: "Jessie"},
-		{Name: "Us"},
-	}
-	for _, b := range beneficiaries {
-		if err := Create(s.DB, &b); err != nil {
+func seedTable[T any](s *Service, records []T) error {
+	for _, r := range records {
+		if err := Create(s.DB, &r); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+func (s *Service) seed() error {
+
+	// Seed Beneficiaries
+	err := seedTable(s, []Beneficiary{
+		{Name: "Bob"},
+		{Name: "Jessie"},
+		{Name: "Us"},
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to seed beneficiaries: %w", err)
+	}
 
 	// Seed Accounts
-	accounts := []Account{
+	err = seedTable(s, []Account{
 		{
 			Name:        "CapitalOne",
 			Description: "Capital One rewards Credit Account",
@@ -72,15 +80,27 @@ func (s *Service) seed() error {
 			Description: "Wells Fargo Visa",
 			Beneficiary: "Us",
 		},
-	}
-	for _, a := range accounts {
-		if err := Create(s.DB, &a); err != nil {
-			return err
-		}
+	})
+	if err != nil {
+		return fmt.Errorf("failed to seed accounts: %w", err)
 	}
 
+	// Seed Budgets
+	err = seedTable(s, []Budget{
+		{
+			Name:        "--unbudgeted--",
+			Description: "Unbudgeted",
+			Beneficiary: "Us",
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to seed budgets: %w", err)
+	}
 	return nil
 }
+
+// Templateized CRUD functions for all the tables
+// todo: see whether typescript can bind to underlying generic db calls?
 
 // --- Beneficiaries ---
 
@@ -187,6 +207,12 @@ func (s *Service) GetRawTransactionsPaginated(start, count int, sortKeys []SortO
 	orderStr := BuildOrderString(sortKeys)
 	rawTxs, _, err := GetPage[RawTransaction](s.DB, start, count, orderStr, nil)
 	return rawTxs, err
+}
+
+func (s *Service) GetRawTransactionCount() (int64, error) {
+	var count int64
+	err := s.DB.Model(&RawTransaction{}).Count(&count).Error
+	return count, err
 }
 
 func (s *Service) AddRawTransaction(rawTransaction *RawTransaction) error {

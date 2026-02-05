@@ -76,21 +76,19 @@ type Transaction struct {
 }
 
 // RawTransaction is used for importing transactions before they are fully processed and linked
+// No FK constraints here, to permit import of raw data
 type RawTransaction struct {
-	ID             uint       `gorm:"primarykey;autoIncrement"`
-	CreatedAt      time.Time  `json:"-"`
-	UpdatedAt      time.Time  `json:"-"`
-	DeletedAt      *time.Time `gorm:"index"`
-	PostedDate     Date
-	Account        string
-	AccountObj     *Account `gorm:"foreignKey:Account;references:Name"`
-	Amount         Money
-	Description    string
-	Tag            string
-	Budget         string
-	BudgetObj      *Budget `gorm:"foreignKey:Budget;references:Name"`
-	Action         string  // "add" or "update"
-	Beneficiary    string
-	BeneficiaryObj *Beneficiary `gorm:"foreignKey:Beneficiary;references:Name"`
-	RawHint        string
+	ID          uint       `gorm:"primarykey;autoIncrement"`
+	CreatedAt   time.Time  `json:"-"`
+	UpdatedAt   time.Time  `json:"-"`
+	DeletedAt   *time.Time `gorm:"index"`
+	PostedDate  Date
+	Account     string
+	Amount      Money
+	Description string
+	Tag         string
+	Budget      string
+	Action      string // "add" or "update"
+	Beneficiary string
+	RawHint     string
 }

@@ -1,34 +1,45 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { Button } from "$lib/components/ui/button";
-    // Removed unused Select imports
     import * as Card from "$lib/components/ui/card";
     import { ImportFile, SelectFile } from "$wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
     import { toast } from "svelte-sonner";
+    import { DataTable } from "datatable";
+    import type {
+        DataTableConfig,
+        DataSourceCallback,
+        RowEditAction,
+        RowEditResult,
+    } from "datatable";
 
     // State using Runes
     let accounts = $state<any[]>([]);
     let selectedAccount = $state("");
     let filePath = $state("");
-    let rawTransactions = $state<any[]>([]);
+    let totalRawTransactions = $state(0);
     let loading = $state(false);
     let importStats = $state("");
 
     // Options for Edit Form
+    let accountOptions = $state<string[]>([]);
     let budgetOptions = $state<string[]>([]);
     let beneficiaryOptions = $state<string[]>([]);
+
+    // Component ref for DataTable to force refresh
+    let dataTableRef = $state<any>();
 
     onMount(async () => {
         await loadAccounts();
         await loadOptions();
-        await loadRawTransactions();
+        await loadRawTransactionCount();
     });
 
     async function loadAccounts() {
         try {
             accounts = (await Service.GetAccounts()) || [];
+            accountOptions = accounts.map((a: any) => a.Name);
             if (accounts.length > 0) {
                 selectedAccount = accounts[0].Name;
             }
@@ -44,15 +55,15 @@
             const bens = (await Service.GetBeneficiaries()) || [];
             beneficiaryOptions = bens.map((b: any) => b.Name);
         } catch (err) {
-            console.error(err);
+            toast.error("Failed to load budgets, beneficiaries: " + err);
         }
     }
 
-    async function loadRawTransactions() {
+    async function loadRawTransactionCount() {
         try {
-            rawTransactions = (await Service.GetRawTransactions()) || [];
+            totalRawTransactions = await Service.GetRawTransactionCount();
         } catch (err) {
-            console.error(err);
+            toast.error("Failed to load raw transactions count: " + err);
         }
     }
 
@@ -81,7 +92,8 @@
             const msg = await ImportFile(selectedAccount, filePath);
             console.log("[Import] Backend response:", msg);
             toast.success(msg);
-            await loadRawTransactions();
+            await loadRawTransactionCount();
+            dataTableRef?.refresh();
         } catch (err) {
             console.error("[Import] Error calling ImportFile:", err);
             toast.error("Import failed: " + err);
@@ -91,7 +103,7 @@
     }
 
     async function handleFinalize() {
-        if (rawTransactions.length === 0) return;
+        if (totalRawTransactions === 0) return;
         if (
             !confirm(
                 "Are you sure you want to finalize imports? This will clear the staging table.",
@@ -103,7 +115,8 @@
             const msg = await Service.FinalizeImport();
             toast.success(msg);
             importStats = msg;
-            await loadRawTransactions();
+            await loadRawTransactionCount();
+            dataTableRef?.refresh();
         } catch (err) {
             toast.error("Finalize failed: " + err);
         } finally {
@@ -111,38 +124,121 @@
         }
     }
 
-    async function saveEdit(event: CustomEvent) {
-        const item = event.detail;
-        try {
-            // item.Amount is already cents from the Table's logic
-            // But ensure type safety
-            const amount = Number(item.Amount);
-            await Service.UpdateRawTransaction(
-                item.ID,
-                item.PostedDate,
-                amount,
-                item.Description,
-                item.Beneficiary,
-                item.BudgetLine,
-                item.RawHint,
-            );
-            toast.success("Transaction updated");
-            await loadRawTransactions();
-        } catch (err) {
-            toast.error("Update failed: " + err);
-        }
-    }
+    // DataTable Configuration
+    const tableConfig: DataTableConfig = {
+        name: "raw-transactions-table",
+        title: "Staging Area",
+        keyColumn: "ID",
+        isEditable: true,
+        isFilterable: true,
+        columns: [
+            {
+                name: "PostedDate",
+                title: "Date",
+                isSortable: true,
+                justify: "left",
+            },
+            {
+                name: "Description",
+                title: "Description",
+                isSortable: true,
+                justify: "left",
+                wrappable: "word",
+                maxChars: 30,
+                maxLines: 2,
+            },
+            {
+                name: "Amount",
+                title: "Amount",
+                isSortable: true,
+                justify: "right",
+                formatter: (val: number) => (val / 100).toFixed(2),
+            },
+            {
+                name: "Beneficiary",
+                title: "Beneficiary",
+                isSortable: true,
+                justify: "left",
+                enumValues: () => beneficiaryOptions,
+            },
+            {
+                name: "Budget",
+                title: "Budget",
+                isSortable: true,
+                justify: "left",
+                enumValues: () => budgetOptions,
+            },
+            {
+                name: "Action",
+                title: "Status",
+                isSortable: true,
+                justify: "center",
+                // Status is read-only in this view conceptually, but if edited, it's just text
+            },
+            {
+                name: "RawHint",
+                title: "Hint",
+                isSortable: true,
+                justify: "left",
+            },
+        ],
+    };
 
-    async function deleteEdit(event: CustomEvent) {
-        const id = event.detail;
+    // Server-side data source wrapper
+    const dataSource: DataSourceCallback = async (
+        columnKeys,
+        startRow,
+        numRows,
+        sortKeys,
+    ) => {
+        const goSortKeys: models.SortOption[] = sortKeys.map(
+            (k) =>
+                ({ key: k.key, direction: k.direction }) as models.SortOption,
+        );
+        return await Service.GetRawTransactionsPaginated(
+            startRow,
+            numRows,
+            goSortKeys,
+        );
+    };
+
+    const handleRowEdit = async (
+        action: RowEditAction,
+        row: any,
+        oldRow: any,
+    ): Promise<RowEditResult> => {
         try {
-            await Service.DeleteRawTransaction(id);
-            toast.success("Transaction deleted");
-            await loadRawTransactions();
-        } catch (err) {
-            toast.error("Delete failed: " + err);
+            if (action === "update") {
+                // Ensure Amount is number (sometimes forms return strings)
+                // const amount = Number(row.Amount);
+                // Actually the form usually binds to the raw value, but let's be careful.
+                // Our DataTable form currently binds directly to the object values.
+                // Since our formatter is (val/100), the raw value is cents.
+
+                await Service.UpdateRawTransaction(oldRow, row);
+            } else if (action === "delete") {
+                await Service.DeleteRawTransaction(oldRow);
+                // Count changes on delete
+                await loadRawTransactionCount();
+            } else if (action === "create") {
+                // Not really creating raw transactions manually in this flow usually,
+                // but if we did:
+                await Service.AddRawTransaction(row);
+                // Count changes on create
+                await loadRawTransactionCount();
+            }
+
+            // Refresh local data to reflect changes
+            // For pagination, usually we rely on the component re-fetching or we manually invalidate.
+            // Returning true usually triggers a re-fetch if configured effectively?
+            // Actually currently DataTable might just update the local row if we return true on update,
+            // but for add/delete we definitely need a re-fetch.
+            return true;
+        } catch (e) {
+            console.error(`RawTransaction ${action} failed:`, e);
+            return { error: String(e) };
         }
-    }
+    };
 </script>
 
 <div class="h-full flex flex-col gap-4 p-4">
@@ -195,12 +291,12 @@
         </Card.Content>
     </Card.Root>
 
-    {#if rawTransactions.length > 0}
+    {#if totalRawTransactions > 0}
         <Card.Root class="flex-1 flex flex-col min-h-0">
             <Card.Header class="flex flex-row items-center justify-between">
                 <div>
                     <Card.Title
-                        >Staging Area ({rawTransactions.length})</Card.Title
+                        >Staging Area ({totalRawTransactions})</Card.Title
                     >
                     <Card.Description
                         >Review and edit before finalizing.</Card.Description
@@ -211,12 +307,14 @@
                 >
             </Card.Header>
             <Card.Content class="flex-1 overflow-auto min-h-0">
-                <RawTransactionsTable
-                    data={rawTransactions}
-                    {budgetOptions}
-                    {beneficiaryOptions}
-                    on:update={saveEdit}
-                    on:delete={deleteEdit}
+                <!-- 
+                    Use DataTable with server-side pagination.
+                  -->
+                <DataTable
+                    bind:this={dataTableRef}
+                    config={tableConfig}
+                    {dataSource}
+                    onRowEdit={handleRowEdit}
                 />
             </Card.Content>
         </Card.Root>

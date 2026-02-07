@@ -7,7 +7,7 @@
     import * as Service from "$wailsjs/go/models/Service";
     import { toast } from "svelte-sonner";
     import { parseMoney } from "$lib/money";
-    import { DataTable } from "datatable";
+    import { DataTable, DataTableContainer } from "datatable";
     import type {
         DataTableConfig,
         DataSourceCallback,
@@ -298,20 +298,20 @@
                     >Finalize Import</Button
                 >
             </Card.Header>
-            <Card.Content class="flex-1 min-h-0 relative p-0">
+            <Card.Content class="flex-1 min-h-0 flex flex-col relative p-0">
                 <!-- 
-                    Use DataTable with server-side pagination.
-                    Use absolute positioning to break the circular layout dependency.
-                    inset-0 makes it flush with the card edges.
-                    border-0 avoids double borders with the card.
+                    Use DataTableContainer to handle responsive layout.
+                    It provides flex-1 min-h-0 relative context.
                   -->
-                <DataTable
-                    bind:this={dataTableRef}
-                    config={tableConfig}
-                    {dataSource}
-                    onRowEdit={handleRowEdit}
-                    class="absolute inset-0 border-0"
-                />
+                <DataTableContainer>
+                    <DataTable
+                        bind:this={dataTableRef}
+                        config={tableConfig}
+                        {dataSource}
+                        onRowEdit={handleRowEdit}
+                        class="absolute inset-0 border-0"
+                    />
+                </DataTableContainer>
             </Card.Content>
         </Card.Root>
     {/if}

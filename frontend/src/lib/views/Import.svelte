@@ -126,7 +126,6 @@
         keyColumn: "ID",
         isEditable: true,
         isFilterable: true,
-        maxVisibleRows: 20,
         columns: [
             {
                 name: "PostedDate",
@@ -234,7 +233,7 @@
     };
 </script>
 
-<div class="h-full flex flex-col gap-4 p-4">
+<div class="flex-1 w-full h-full flex flex-col gap-4 p-4">
     <Card.Root>
         <Card.Header>
             <Card.Title>Import Transactions</Card.Title>
@@ -299,15 +298,19 @@
                     >Finalize Import</Button
                 >
             </Card.Header>
-            <Card.Content class="flex-1 overflow-auto min-h-0">
+            <Card.Content class="flex-1 min-h-0 relative p-0">
                 <!-- 
                     Use DataTable with server-side pagination.
+                    Use absolute positioning to break the circular layout dependency.
+                    inset-0 makes it flush with the card edges.
+                    border-0 avoids double borders with the card.
                   -->
                 <DataTable
                     bind:this={dataTableRef}
                     config={tableConfig}
                     {dataSource}
                     onRowEdit={handleRowEdit}
+                    class="absolute inset-0 border-0"
                 />
             </Card.Content>
         </Card.Root>

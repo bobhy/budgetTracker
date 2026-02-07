@@ -61,7 +61,7 @@
   <main class="min-h-screen bg-background text-foreground flex flex-col">
     <Navbar />
 
-    <div class="flex-1 container mx-auto p-4">
+    <div class="flex-1 container mx-auto p-4 flex flex-col min-h-0">
       {#if navigation.currentView === "beneficiaries"}
         <Beneficiaries />
       {:else if navigation.currentView === "accounts"}

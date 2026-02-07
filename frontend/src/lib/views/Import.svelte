@@ -83,6 +83,7 @@
             return;
         }
         loading = true;
+        await tick();
         try {
             console.log(
                 `[Import] Calling backend ImportFile. Account: ${selectedAccount}, Path: ${filePath}`,
@@ -104,6 +105,7 @@
         if (totalRawTransactions === 0) return;
 
         loading = true;
+        await tick();
         try {
             const msg = await Service.FinalizeImport();
             toast.success(msg);
@@ -124,6 +126,7 @@
         keyColumn: "ID",
         isEditable: true,
         isFilterable: true,
+        maxVisibleRows: 20,
         columns: [
             {
                 name: "PostedDate",

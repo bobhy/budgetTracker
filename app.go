@@ -84,3 +84,12 @@ func (a *App) ImportFile(accountID string, filePath string) (string, error) {
 	runtime.LogInfo(a.ctx, msg)
 	return msg, nil
 }
+
+func (a *App) ApplyTags() (string, error) {
+	count, err := a.service.ApplyTags()
+	if err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("Error applying tags: %s", err))
+		return "", err
+	}
+	return fmt.Sprintf("Auto-applied budgets for %d transactions.", count), nil
+}

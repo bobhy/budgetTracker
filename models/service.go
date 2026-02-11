@@ -359,3 +359,70 @@ func (s *Service) FinalizeImport() (string, error) {
 	tx.Commit()
 	return fmt.Sprintf("Finalized: %d added, %d updated, %d remain to be categorized.", added, updated, skipped), nil
 }
+
+func (s *Service) ApplyTags() (int64, error) {
+	// 1. Tagging Query
+	// Updates raw_transactions.tag based on description patterns
+	taggingQuery := `
+	WITH t1 AS (
+		SELECT
+			id,
+			CASE
+				WHEN description LIKE 'money transfer authorized on __/__ %' THEN substr(description, 36)
+				WHEN description LIKE 'purchase authorized on __/__ %' THEN substr(description, 30)
+				WHEN description LIKE 'purchase intl authorized on __/__ %' THEN substr(description, 35)
+				ELSE description
+			END AS stem1
+		FROM raw_transactions
+	),
+	t2 AS (
+		SELECT
+			id,
+			CASE
+				WHEN stem1 LIKE '___*%' THEN substr(stem1, 5)
+				WHEN stem1 LIKE 'cash app*%' THEN substr(stem1, 10)
+				WHEN stem1 LIKE 'zelle to %' THEN substr(stem1, 10)
+				WHEN stem1 LIKE 'paypal *%' THEN substr(stem1, 9)
+				ELSE stem1
+			END AS stem
+		FROM t1
+	)
+	UPDATE raw_transactions
+	SET tag = t2.stem
+	FROM t2
+	WHERE raw_transactions.id = t2.id;
+	`
+
+	// 2. Budget Mapping Query
+	// Updates raw_transactions.budget based on tag matches in tags table
+	budgetQuery := `
+	UPDATE raw_transactions
+	SET budget = t.budget
+	FROM tags t
+	WHERE substr(raw_transactions.tag, 1, length(t.name)) = t.name;
+	`
+
+	tx := s.DB.Begin()
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+
+	// Run Tagging
+	if err := tx.Exec(taggingQuery).Error; err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("tagging query failed: %w", err)
+	}
+
+	// Run Budget Mapping
+	result := tx.Exec(budgetQuery)
+	if result.Error != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("budget mapping query failed: %w", result.Error)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected, nil
+}

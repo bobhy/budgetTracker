@@ -2,7 +2,7 @@
     import { onMount, tick } from "svelte";
     import { Button } from "$lib/components/ui/button";
     import * as Card from "$lib/components/ui/card";
-    import { ImportFile, SelectFile } from "$wailsjs/go/main/App";
+    import { ImportFile, SelectFile, ApplyTags } from "$wailsjs/go/main/App";
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
     import { toast } from "svelte-sonner";
@@ -21,7 +21,13 @@
     let filePath = $state("");
     let totalRawTransactions = $state(0);
     let loading = $state(false);
-    let importStats = $state("");
+    let importStats = $state(""); // Keeping to support logic, but will not display bottom div. Actually, used below for finalize reporting?
+    // Wait, requirement said "The view currently has a last div that's conditioned on importStats, that should be removed".
+    // I removed the display block in previous edit.
+    // Now implementing status logic.
+
+    let statusMessage = $state("");
+    let statusType = $state<"success" | "error">("success");
 
     // Options for Edit Form
     let accountOptions = $state<string[]>([]);
@@ -105,15 +111,34 @@
         if (totalRawTransactions === 0) return;
 
         loading = true;
+        statusMessage = ""; // clear previous
         await tick();
         try {
             const msg = await Service.FinalizeImport();
-            toast.success(msg);
-            importStats = msg;
+            statusMessage = msg;
+            statusType = "success";
             await loadRawTransactionCount();
             dataTableRef?.refresh();
         } catch (err) {
-            toast.error("Finalize failed: " + err);
+            statusMessage = "Finalize failed: " + err;
+            statusType = "error";
+        } finally {
+            loading = false;
+        }
+    }
+
+    async function handleApplyTags() {
+        loading = true;
+        statusMessage = ""; // clear previous
+        await tick();
+        try {
+            const msg = await ApplyTags();
+            statusMessage = msg;
+            statusType = "success";
+            dataTableRef?.refresh();
+        } catch (err) {
+            statusMessage = "Auto-Tag failed: " + err;
+            statusType = "error";
         } finally {
             loading = false;
         }
@@ -288,20 +313,60 @@
 
     {#if totalRawTransactions > 0}
         <Card.Root class="flex-1 flex flex-col min-h-0">
-            <Card.Header class="flex flex-row items-center justify-between">
-                <div>
-                    <Card.Title
-                        >Staging Area ({totalRawTransactions})</Card.Title
-                    >
-                    <Card.Description
-                        >Review, edit and assign budget to finalize.</Card.Description
-                    >
+            <Card.Header>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                    <!-- Column 1: Info -->
+                    <div class="flex flex-col justify-start">
+                        <Card.Title
+                            >Staging Area ({totalRawTransactions})</Card.Title
+                        >
+                        <Card.Description
+                            >Review, edit and assign budget to finalize.</Card.Description
+                        >
+                    </div>
+
+                    <!-- Column 2: Auto-Tag -->
+                    <div class="flex flex-col gap-2 items-start">
+                        <Button
+                            onclick={handleApplyTags}
+                            disabled={loading}
+                            variant="outline"
+                        >
+                            Auto-Tag
+                        </Button>
+                        <p class="text-sm text-muted-foreground">
+                            Use the auto-tag button (or manually edit staged
+                            transactions) to assign a budget.
+                        </p>
+                    </div>
+
+                    <!-- Column 3: Finalize -->
+                    <div class="flex flex-col gap-2 items-start">
+                        <Button
+                            onclick={handleFinalize}
+                            disabled={loading}
+                            variant="outline"
+                        >
+                            Finalize
+                        </Button>
+                        <p class="text-sm text-muted-foreground">
+                            Use the Finalize button to move transactions out of
+                            the staging area.
+                        </p>
+                    </div>
                 </div>
-                <Button onclick={handleFinalize} disabled={loading}
-                    >Finalize Import</Button
-                >
             </Card.Header>
             <Card.Content class="flex-1 min-h-0 flex flex-col relative p-0">
+                {#if statusMessage}
+                    <div
+                        class="mx-4 my-2 p-3 rounded-md text-sm font-medium border {statusType ===
+                        'error'
+                            ? 'bg-destructive/15 text-destructive border-destructive/20'
+                            : 'bg-green-500/15 text-green-700 border-green-500/20'}"
+                    >
+                        {statusMessage}
+                    </div>
+                {/if}
                 <!-- 
                     Use DataTableContainer to handle responsive layout.
                     It provides flex-1 min-h-0 relative context.
@@ -317,11 +382,5 @@
                 </DataTableContainer>
             </Card.Content>
         </Card.Root>
-    {/if}
-
-    {#if importStats}
-        <div class="text-green-600 font-bold p-2 border rounded bg-green-50">
-            Last Import: {importStats}
-        </div>
     {/if}
 </div>

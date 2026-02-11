@@ -10,17 +10,17 @@
     import { models } from "$wailsjs/go/models";
     import * as Service from "$wailsjs/go/models/Service";
 
-    let beneficiaries = $state<string[]>([]);
+    let budgets = $state<string[]>([]);
 
     onMount(async () => {
-        const fetched = await Service.GetBeneficiaries();
-        beneficiaries = fetched.map((b: any) => b.Name);
+        const fetched = await Service.GetBudgets();
+        budgets = fetched.map((b: any) => b.Name);
     });
 
     const config: DataTableConfig = {
-        name: "accounts_grid",
+        name: "tags_grid",
         keyColumn: "Name",
-        title: "Accounts",
+        title: "Tags",
         isFilterable: true,
         isFindable: true,
         isEditable: true,
@@ -31,18 +31,10 @@
                 justify: "center",
             },
             {
-                name: "Description",
-                isSortable: true,
-                justify: "left",
-                wrappable: "word",
-                maxLines: 3,
-                maxChars: 20,
-            },
-            {
-                name: "Beneficiary",
+                name: "Budget",
                 isSortable: true,
                 justify: "center",
-                enumValues: () => beneficiaries,
+                enumValues: () => budgets,
             },
         ],
     };
@@ -57,11 +49,9 @@
             (k) =>
                 ({ key: k.key, direction: k.direction }) as models.SortOption,
         );
-        return await Service.GetAccountsPaginated(
-            startRow,
-            numRows,
-            goSortKeys,
-        );
+        return await Service.GetTagsPaginated(startRow, numRows, goSortKeys);
+        //tags, _, err := models.GetPage[models.Tag](s.DB, startRow, numRows, goSortKeys, nil)
+        //return tags, err
     };
 
     const handleRowEdit = async (
@@ -72,15 +62,15 @@
     ): Promise<RowEditResult> => {
         try {
             if (action === "update") {
-                await Service.UpdateAccount(oldRow, row);
+                await Service.UpdateTag(oldRow, row);
             } else if (action === "create") {
-                await Service.AddAccount(row);
+                await Service.AddTag(row);
             } else if (action === "delete") {
-                await Service.DeleteAccount(oldRow);
+                await Service.DeleteTag(oldRow);
             }
             return true;
         } catch (e) {
-            console.error(`Account ${action} failed:`, e);
+            console.error(`Tag ${action} failed:`, e);
             return { error: String(e) };
         }
     };

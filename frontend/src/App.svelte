@@ -5,6 +5,7 @@
   import Beneficiaries from "$lib/views/Beneficiaries.svelte";
   import Accounts from "$lib/views/Accounts.svelte";
   import Budgets from "$lib/views/Budgets.svelte";
+  import Tags from "$lib/views/Tags.svelte";
 
   import Transactions from "$lib/views/Transactions.svelte";
   import Database from "$lib/views/Database.svelte";
@@ -68,6 +69,8 @@
         <Accounts />
       {:else if navigation.currentView === "budgets"}
         <Budgets />
+      {:else if navigation.currentView === "tags"}
+        <Tags />
       {:else if navigation.currentView === "transactions"}
         <Transactions />
       {:else if navigation.currentView === "import"}

@@ -135,7 +135,6 @@
             },
             {
                 name: "Description",
-                title: "Description",
                 isSortable: true,
                 justify: "left",
                 wrappable: "word",
@@ -144,17 +143,20 @@
             },
             {
                 name: "Amount",
-                title: "Amount",
                 isSortable: true,
                 justify: "right",
                 formatter: (val: number) => (val / 100).toFixed(2),
             },
             {
                 name: "Beneficiary",
-                title: "Beneficiary",
                 isSortable: true,
                 justify: "left",
                 enumValues: () => beneficiaryOptions,
+            },
+            {
+                name: "Tag",
+                isSortable: true,
+                justify: "left",
             },
             {
                 name: "Budget",
@@ -180,6 +182,7 @@
     };
 
     // Server-side data source wrapper
+    //todo: handle error return from GetRawTransactions.
     const dataSource: DataSourceCallback = async (
         columnKeys,
         startRow,

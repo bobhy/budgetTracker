@@ -1,3 +1,12 @@
+/**
+* models.go
+*
+* Models for the database.
+* Uses GORM --> WAILS to marshal between DB, Golang and JS front end.
+*
+* todo:
+*	make string match case insensitive (needs `collate nocase` in schema, but GORM doesn't?)
+ */
 package models
 
 import (
@@ -15,10 +24,13 @@ type SortOption struct {
 	Direction string `json:"direction"` // "asc" or "desc"
 }
 
+// Beneficiary is a person who owns an account or a budget line
 type Beneficiary struct {
 	Name string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
 }
 
+// Account is a place where money is held.
+// We merge funds from multiple accounts into a budget line
 type Account struct {
 	Name           string `gorm:"primaryKey;default:'None';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
 	Description    string
@@ -57,17 +69,17 @@ type Budget struct {
 	IntervalMonths int
 }
 
+// A financial event in an account
 type Transaction struct {
 	ID             uint       `gorm:"primarykey;autoIncrement"`
 	CreatedAt      time.Time  `json:"-"` // Hide from frontend to avoid warning/binding issues
 	UpdatedAt      time.Time  `json:"-"`
 	DeletedAt      *time.Time `gorm:"index"` // Use pointer to time for soft delete, hide from json
-	PostedDate     Date
+	PostedDate     Date       `gorm:"column:posted_date"`
 	Account        string
 	AccountObj     *Account `gorm:"foreignKey:Account;references:Name" json:"-"`
 	Amount         Money
-	Description    string
-	Tag            string
+	Description    string // Descriptive text as provided by the bank
 	Budget         string
 	BudgetObj      *Budget `gorm:"foreignKey:Budget;references:Name" json:"-"`
 	Beneficiary    string
@@ -82,13 +94,20 @@ type RawTransaction struct {
 	CreatedAt   time.Time  `json:"-"`
 	UpdatedAt   time.Time  `json:"-"`
 	DeletedAt   *time.Time `gorm:"index"`
-	PostedDate  Date
+	PostedDate  Date       `gorm:"column:posted_date"`
 	Account     string
 	Amount      Money
 	Description string
-	Tag         string
-	Budget      string
+	Tag         string // Tag, usually derived from the Description. *not* a foreign key
+	Budget      string // *not* a foreign key so we can import garbage from CSV
 	Action      string // "add" or "update"
 	Beneficiary string
 	RawHint     string
+}
+
+// Tag is a string mapped to a Budget
+type Tag struct {
+	Name      string `gorm:"primaryKey;default:'';constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
+	Budget    string
+	BudgetObj *Budget `gorm:"foreignKey:Budget;references:Name" json:"-"`
 }

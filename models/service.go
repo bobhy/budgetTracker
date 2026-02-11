@@ -11,6 +11,15 @@ type Service struct {
 	DB *gorm.DB
 }
 
+var allTables = []any{
+	&Beneficiary{},
+	&Account{},
+	&Budget{},
+	&Tag{},
+	&Transaction{},
+	&RawTransaction{},
+}
+
 func NewService(dbPath string) (*Service, error) {
 	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("%s?%s", dbPath, "_foreign_keys=on")), &gorm.Config{})
 	if err != nil {
@@ -18,7 +27,7 @@ func NewService(dbPath string) (*Service, error) {
 	}
 
 	// Auto Migrate
-	err = db.AutoMigrate(&Beneficiary{}, &Account{}, &Budget{}, &Transaction{}, &RawTransaction{})
+	err = db.AutoMigrate(allTables...)
 	if err != nil {
 		return nil, err
 	}
@@ -29,12 +38,12 @@ func NewService(dbPath string) (*Service, error) {
 // Clean drops all tables and re-migrates them, then seeds production data
 func (s *Service) Clean() error {
 	// Drop tables
-	err := s.DB.Migrator().DropTable(&Beneficiary{}, &Account{}, &Budget{}, &Transaction{}, &RawTransaction{})
+	err := s.DB.Migrator().DropTable(allTables...)
 	if err != nil {
 		return err
 	}
 	// Re-migrate
-	err = s.DB.AutoMigrate(&Beneficiary{}, &Account{}, &Budget{}, &Transaction{}, &RawTransaction{})
+	err = s.DB.AutoMigrate(allTables...)
 	if err != nil {
 		return err
 	}
@@ -104,6 +113,18 @@ func (s *Service) seed() error {
 	if err != nil {
 		return fmt.Errorf("failed to seed budgets: %w", err)
 	}
+
+	// Seed Tags
+	err = seedTable(s, []Tag{
+		{
+			Name:   "",
+			Budget: PLACEHOLDER_BUDGET,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to seed tags: %w", err)
+	}
+
 	return nil
 }
 
@@ -180,6 +201,30 @@ func (s *Service) UpdateBudget(oldBudget, newBudget *Budget) error {
 
 func (s *Service) DeleteBudget(budget *Budget) error {
 	return Delete(s.DB, budget)
+}
+
+// --- Tags ---
+
+func (s *Service) GetTags() ([]Tag, error) {
+	return GetAll[Tag](s.DB)
+}
+
+func (s *Service) GetTagsPaginated(start, count int, sortKeys []SortOption) ([]Tag, error) {
+	orderStr := BuildOrderString(sortKeys)
+	Tags, _, err := GetPage[Tag](s.DB, start, count, orderStr, nil)
+	return Tags, err
+}
+
+func (s *Service) AddTag(Tag *Tag) error {
+	return Create(s.DB, Tag)
+}
+
+func (s *Service) UpdateTag(oldTag, newTag *Tag) error {
+	return s.DB.Model(oldTag).Updates(newTag).Error
+}
+
+func (s *Service) DeleteTag(Tag *Tag) error {
+	return Delete(s.DB, Tag)
 }
 
 // --- Transactions ---
